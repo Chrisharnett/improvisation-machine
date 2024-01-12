@@ -1,3 +1,6 @@
+# The Improvisation prompter
+A machine to prompt musicians in an improvised performance with directions to influence their performance. 
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

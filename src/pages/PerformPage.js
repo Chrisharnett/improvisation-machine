@@ -13,13 +13,9 @@ const PerformPage = () => {
     }, 2000);
   }, []);
 
-  const setPerformanceId = () => {
+  const handleNextSong = () => {
     const id = uuidv4();
     setPerformanceCode(id);
-  };
-
-  const handleNextSong = () => {
-    setPerformanceId();
   };
   return (
     <>

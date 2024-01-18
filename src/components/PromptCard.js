@@ -2,7 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, Button } from "react-bootstrap";
 import useWebSocket from "../hooks/useWebSocket.js";
 
-const PromptCard = ({ performanceCode, isLoading }) => {
+const PromptCard = ({
+  performanceCode,
+  setPerformanceCode,
+  isLoading,
+  message,
+  setMessage,
+  songEnd,
+  setSongEnd,
+}) => {
   const [prompt, setPrompt] = useState(null);
   const [ignore, setIgnore] = useState(false);
   const [startTime, setStartTime] = useState(null);
@@ -10,12 +18,23 @@ const PromptCard = ({ performanceCode, isLoading }) => {
   const [error, setError] = useState(null);
   const [logPrompt, setLogPrompt] = useState(null);
 
+  const endSong = () => {
+    setSongEnd(true);
+    //log Performance - probably a modal
+    // Maybe move logging functionality outside, or here.
+    // setPerformanceCode(null);
+  };
+
   const handleWebSocketMessage = useCallback((event) => {
     try {
       if (event.data !== "") {
         const response = JSON.parse(event.data);
         if (response.prompt) {
-          setPrompt(response.prompt.body);
+          const newPrompt = JSON.parse(response.prompt.body);
+          setPrompt(newPrompt);
+          if (newPrompt.Tags.includes("End-Only")) {
+            endSong();
+          }
           setStartTime(new Date().toISOString());
         }
       }
@@ -34,7 +53,8 @@ const PromptCard = ({ performanceCode, isLoading }) => {
       sendMessage(
         JSON.stringify({
           action: "sendPrompt",
-          message: "testing only this line can probably be deleted.",
+          include_attributes: [],
+          ignore_attributes: ["Ignore"],
         })
       );
     }
@@ -53,7 +73,8 @@ const PromptCard = ({ performanceCode, isLoading }) => {
     sendMessage(
       JSON.stringify({
         action: "sendPrompt",
-        message: "testing only this line can probably be deleted.",
+        include_attributes: [],
+        ignore_attributes: ["Ignore"],
       })
     );
     setIgnore(false);
@@ -62,6 +83,16 @@ const PromptCard = ({ performanceCode, isLoading }) => {
   const handleIgnorePrompt = () => {
     setIgnore(true);
     handleNextPrompt();
+  };
+
+  const handleEndSong = () => {
+    sendMessage(
+      JSON.stringify({
+        action: "sendEndingPrompt",
+        include_attributes: ["End", "End-Only"],
+        ignore_attributes: ["Ignore"],
+      })
+    );
   };
 
   if (error) {
@@ -78,26 +109,38 @@ const PromptCard = ({ performanceCode, isLoading }) => {
             <Card.Title className="fs-1">Loading...</Card.Title>
           )}
           {!prompt && !isLoading && (
-            <Card.Title className="fs-1">
-              Click "Begin Song" to start
-            </Card.Title>
+            <Card.Title className="fs-1">{message}</Card.Title>
           )}
           <Card.Text className=""></Card.Text>
-          {prompt && (
+          {
             <>
-              <Button type="submit" className="mx-2" onClick={handleNextPrompt}>
+              <Button
+                type="submit"
+                className="mx-2"
+                onClick={handleNextPrompt}
+                disabled={!prompt}
+              >
                 Next Prompt
+              </Button>
+              <Button
+                type="submit"
+                className="mx-2"
+                onClick={handleEndSong}
+                disabled={!prompt}
+              >
+                End Song
               </Button>
               <Button
                 type="submit"
                 variant="danger"
                 className="mx-2"
                 onClick={handleIgnorePrompt}
+                disabled={!prompt}
               >
                 Ignore Prompt
               </Button>
             </>
-          )}
+          }
         </Card.Body>
       </Card>
     </>

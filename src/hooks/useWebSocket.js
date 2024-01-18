@@ -17,6 +17,7 @@ const useWebSocket = (url, onMessageHandler) => {
     };
 
     webSocket.onerror = (event) => {
+      console.log(event);
       console.error("WebSocket error: ", event);
     };
 

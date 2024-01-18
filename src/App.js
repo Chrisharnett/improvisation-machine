@@ -4,6 +4,10 @@ import Navigation from "./components/NavBar.js";
 import HomePage from "./pages/HomePage.js";
 import PerformPage from "./pages/PerformPage.js";
 import CreatePrompts from "./pages/CreatePrompts.js";
+import WebSocketTest from "./components/WebSocketTest.js";
+import JoinPerformance from "./pages/JoinPerformance.js";
+import PerformerPage from "./pages/PerformerPage.js";
+import { PrivateRoute } from "./auth/privateRoute.js";
 
 function App() {
   return (
@@ -12,8 +16,13 @@ function App() {
         <Navigation />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/perform" element={<PerformPage />} />
-          <Route path="/createPrompts" element={<CreatePrompts />} />
+          <Route path="/test" element={<WebSocketTest />} />
+          <Route path="/joinPerformance" element={<JoinPerformance />} />
+          <Route path="/performerPage" element={<PerformerPage />} />
+          <Route element={<PrivateRoute />}>
+            <Route path="/performPage" element={<PerformPage />} />
+            <Route path="/createPrompts" element={<CreatePrompts />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </>

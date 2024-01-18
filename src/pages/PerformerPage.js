@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 const PerformPage = () => {
   const [performanceCode, setPerformanceCode] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState("Click Begin Song to start");
+  const [message, setMessage] = useState("This takes a moment.");
   const [songEnd, setSongEnd] = useState(false);
 
   useEffect(() => {
@@ -15,11 +15,6 @@ const PerformPage = () => {
     }, 2000);
   }, []);
 
-  const handleNextSong = () => {
-    const id = uuidv4();
-    setPerformanceCode(id);
-    setMessage("This takes a moment.");
-  };
   return (
     <>
       <h1> This is the performance interface </h1>
@@ -31,10 +26,6 @@ const PerformPage = () => {
         songEnd={songEnd}
         setSongEnd={setSongEnd}
       />
-      {!performanceCode && !isLoading && (
-        <Button onClick={handleNextSong}>Begin Song</Button>
-      )}
-      {performanceCode && <Button onClick={handleNextSong}>Next Song</Button>}
     </>
   );
 };

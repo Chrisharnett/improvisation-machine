@@ -53,8 +53,8 @@ const PromptCard = ({
       sendMessage(
         JSON.stringify({
           action: "sendPrompt",
-          include_attributes: [],
-          ignore_attributes: ["Ignore"],
+          include_tags: [],
+          ignore_tags: ["Ignore"],
         })
       );
     }
@@ -70,14 +70,15 @@ const PromptCard = ({
       endTime: newEndTime,
       ignore: ignore,
     });
+    setIgnore(false);
+    setPrompt({ Prompt: "New prompt requested." });
     sendMessage(
       JSON.stringify({
         action: "sendPrompt",
-        include_attributes: [],
-        ignore_attributes: ["Ignore"],
+        include_tags: [],
+        ignore_tags: ["Ignore"],
       })
     );
-    setIgnore(false);
   };
 
   const handleIgnorePrompt = () => {
@@ -89,8 +90,8 @@ const PromptCard = ({
     sendMessage(
       JSON.stringify({
         action: "sendEndingPrompt",
-        include_attributes: ["End", "End-Only"],
-        ignore_attributes: ["Ignore"],
+        include_tags: ["End", "End-Only"],
+        ignore_tags: ["Ignore"],
       })
     );
   };

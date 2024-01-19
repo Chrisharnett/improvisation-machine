@@ -2,18 +2,25 @@ import { useState } from "react";
 
 export const useToken = () => {
   const getToken = () => {
-    const token = document.cookie
+    const tokenString = document.cookie
       .split("; ")
       .find((row) => row.startsWith("token="));
-    return token ? token.split("=")[1] : null;
+    const token = tokenString ? tokenString.split("=")[1] : null;
+    return token ? JSON.parse(decodeURIComponent(token)) : null;
   };
 
   const [token, setToken] = useState(getToken());
 
   const saveToken = (newToken) => {
     const saveToken = JSON.stringify(newToken);
-    document.cookie = `token=${saveToken}; path=/`;
-    setToken(saveToken);
+    const date = new Date();
+    const expirationDays = 1;
+    date.setTime(date.getTime() + expirationDays * 24 * 60 * 60 * 1000);
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = `token=${encodeURIComponent(
+      saveToken
+    )}; path=/; ${expires}`;
+    setToken(newToken);
   };
 
   const removeToken = () => {

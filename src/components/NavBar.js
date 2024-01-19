@@ -7,12 +7,20 @@ import getCognitoUrl from "../auth/getCognitoURL";
 import axios from "axios";
 import { useToken } from "../auth/useToken";
 
-const Navigation = () => {
-  const [, saveToken] = useToken();
+const Navigation = ({ loggedIn, setLoggedIn }) => {
+  const [token, saveToken, removeToken] = useToken();
   const navigate = useNavigate();
   const location = useLocation();
-  const [loggedIn, setLoggedIn] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (token) {
+      // Assuming that if token is not null, then the user is logged in
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
+    }
+  }, [token, setLoggedIn]);
 
   const codeForToken = async (code) => {
     try {
@@ -40,7 +48,7 @@ const Navigation = () => {
   }, []);
 
   const logOutHandler = () => {
-    saveToken(null);
+    removeToken();
     setLoggedIn(false);
     navigate("/");
   };

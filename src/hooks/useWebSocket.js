@@ -30,7 +30,7 @@ const useWebSocket = (url, onMessageHandler) => {
     return () => {
       webSocket.close();
     };
-  }, [url, onMessageHandler]);
+  }, [url]);
 
   const sendMessage = (message) => {
     if (ws && ws.readyState === WebSocket.OPEN) {

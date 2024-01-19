@@ -8,12 +8,17 @@ import WebSocketTest from "./components/WebSocketTest.js";
 import JoinPerformance from "./pages/JoinPerformance.js";
 import PerformerPage from "./pages/PerformerPage.js";
 import { PrivateRoute } from "./auth/privateRoute.js";
+import { useState } from "react";
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  console.log("starting");
+
   return (
     <>
       <BrowserRouter>
-        <Navigation />
+        <Navigation loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/test" element={<WebSocketTest />} />

@@ -5,14 +5,21 @@ export const useToken = () => {
     const tokenString = document.cookie
       .split("; ")
       .find((row) => row.startsWith("token="));
-    const token = tokenString ? tokenString.split("=")[1] : null;
-    return token ? JSON.parse(decodeURIComponent(token)) : null;
+    if (tokenString) {
+      const token = decodeURIComponent(tokenString.split("=")[1]);
+      return token ? JSON.parse(token) : null;
+    }
+    return null;
   };
 
   const [token, setToken] = useState(getToken());
 
   const saveToken = (newToken) => {
-    const saveToken = JSON.stringify(newToken);
+    const saveToken = JSON.stringify({
+      id_token: newToken.id_token,
+      access_token: newToken.access_token,
+      // add refresh_token here if needed later
+    });
     const date = new Date();
     const expirationDays = 1;
     date.setTime(date.getTime() + expirationDays * 24 * 60 * 60 * 1000);
@@ -20,7 +27,7 @@ export const useToken = () => {
     document.cookie = `token=${encodeURIComponent(
       saveToken
     )}; path=/; ${expires}`;
-    setToken(newToken);
+    setToken(saveToken);
   };
 
   const removeToken = () => {

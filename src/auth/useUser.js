@@ -13,7 +13,7 @@ const useUser = () => {
     if (!token) {
       return null;
     } else {
-      return getPayloadFromToken(token);
+      return getPayloadFromToken(token.id_token);
     }
   });
 
@@ -21,7 +21,7 @@ const useUser = () => {
     if (!token) {
       setUser(null);
     } else {
-      setUser(getPayloadFromToken(token));
+      setUser(getPayloadFromToken(token.id_token));
     }
   }, [token]);
 
@@ -29,3 +29,5 @@ const useUser = () => {
 };
 
 export default useUser;
+
+// Add functions for access_token later if needed.

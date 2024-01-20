@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react";
 
 const useWebSocket = (url, onMessageHandler) => {
   const ws = useRef(null);
+  const reconnectTimeout = useRef(null);
 
   useEffect(() => {
     ws.current = new WebSocket(url);
@@ -18,7 +19,6 @@ const useWebSocket = (url, onMessageHandler) => {
     };
 
     webSocket.onerror = (event) => {
-      console.log(event);
       console.error("WebSocket error: ", event);
     };
 
@@ -32,9 +32,8 @@ const useWebSocket = (url, onMessageHandler) => {
   }, [url]);
 
   const sendMessage = (message) => {
-    console.log("ws: ", ws);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(message);
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(message);
     }
   };
 

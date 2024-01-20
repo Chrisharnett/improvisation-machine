@@ -4,7 +4,6 @@ import Navigation from "./components/NavBar.js";
 import HomePage from "./pages/HomePage.js";
 import PerformPage from "./pages/PerformPage.js";
 import CreatePrompts from "./pages/CreatePrompts.js";
-import WebSocketTest from "./components/WebSocketTest.js";
 import JoinPerformance from "./pages/JoinPerformance.js";
 import PerformerPage from "./pages/PerformerPage.js";
 import { PrivateRoute } from "./auth/privateRoute.js";

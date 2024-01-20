@@ -34,7 +34,11 @@ const PerformPage = () => {
       {!performanceCode && !isLoading && (
         <Button onClick={handleNextSong}>Begin Song</Button>
       )}
-      {performanceCode && <Button onClick={handleNextSong}>Next Song</Button>}
+      {performanceCode && (
+        <Button onClick={handleNextSong} disabled={performanceCode}>
+          Next Song
+        </Button>
+      )}
     </>
   );
 };

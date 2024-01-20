@@ -47,8 +47,6 @@ const CreatePrompts = () => {
 
   const handleAddPrompt = async () => {
     try {
-      // const token = await getCredentials();
-
       const newPromptObject = {
         Prompt: newPrompt,
         Tags: Array.from(selectedTags),

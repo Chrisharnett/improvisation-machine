@@ -15,7 +15,6 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
 
   useEffect(() => {
     if (token) {
-      // Assuming that if token is not null, then the user is logged in
       setLoggedIn(true);
     } else {
       setLoggedIn(false);

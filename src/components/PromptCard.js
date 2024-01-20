@@ -20,7 +20,7 @@ const PromptCard = ({
 
   const endSong = () => {
     setSongEnd(true);
-    //log Performance - probably a modal
+    // log Performance - probably a modal
     // Maybe move logging functionality outside, or here.
     // setPerformanceCode(null);
   };

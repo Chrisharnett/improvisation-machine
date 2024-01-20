@@ -14,32 +14,85 @@ const PromptCard = ({
   const [prompt, setPrompt] = useState(null);
   const [ignore, setIgnore] = useState(false);
   const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
   const [error, setError] = useState(null);
   const [logPrompt, setLogPrompt] = useState(null);
+  const [nextPrompt, setNextPrompt] = useState(null);
 
   const endSong = () => {
     setSongEnd(true);
-    // log Performance - probably a modal
+    setPerformanceCode(null);
+    //log Performance - probably a modal
     // Maybe move logging functionality outside, or here.
     // setPerformanceCode(null);
   };
+  const getNewPrompt = () => {
+    console.log("getNewPrompt");
+    sendMessage(
+      JSON.stringify({
+        action: "sendPrompt",
+        include_tags: [],
+        ignore_tags: ["Ignore"],
+      })
+    );
+  };
+
+  const sendChangePrompt = () => {
+    sendMessage(
+      JSON.stringify({
+        action: "changePrompt",
+      })
+    );
+  };
+
+  useEffect(() => {
+    //add logic to log a prompt whenever it is changed
+  }, [logPrompt]);
 
   const handleWebSocketMessage = useCallback((event) => {
     try {
       if (event.data !== "") {
         const response = JSON.parse(event.data);
-        if (response.prompt) {
-          const newPrompt = JSON.parse(response.prompt.body);
-          setPrompt(newPrompt);
-          if (newPrompt.Tags.includes("End-Only")) {
-            endSong();
-          }
-          setStartTime(new Date().toISOString());
+        switch (response.action) {
+          case "newPrompt":
+            const newPrompt = JSON.parse(response.prompt.body);
+            if (!nextPrompt) {
+              console.log("prompt 1 arrives");
+              setNextPrompt(newPrompt);
+              getNewPrompt();
+            } else if (!prompt) {
+              setPrompt(newPrompt);
+            }
+            if (newPrompt.Tags.includes("End-Only")) {
+              endSong();
+            }
+            break;
+
+          case "changePrompt":
+            if (nextPrompt) {
+              const outgoingPrompt = prompt;
+              const endTime = Date().toISOString();
+              setLogPrompt({
+                performanceCode,
+                outgoingPrompt,
+                startTime: startTime,
+                endTime: endTime,
+                ignore: ignore,
+              });
+              setPrompt(nextPrompt);
+              setStartTime(Date().toISOString());
+              getNewPrompt();
+            } else {
+              getNewPrompt();
+              setPrompt(null);
+            }
+            break;
+
+          default:
+            console.log("Unknown action: ", response.action);
         }
       }
     } catch (e) {
-      setError(e);
+      setPrompt("Error: " + e);
     }
   }, []);
 
@@ -50,35 +103,14 @@ const PromptCard = ({
 
   useEffect(() => {
     if (performanceCode) {
-      sendMessage(
-        JSON.stringify({
-          action: "sendPrompt",
-          include_tags: [],
-          ignore_tags: ["Ignore"],
-        })
-      );
+      getNewPrompt();
+      console.log("PerformanceCode");
     }
   }, [performanceCode]);
 
   const handleNextPrompt = () => {
-    const newEndTime = new Date().toISOString();
-    setEndTime(newEndTime);
-    setLogPrompt({
-      performanceCode,
-      ...prompt,
-      startTime: startTime,
-      endTime: newEndTime,
-      ignore: ignore,
-    });
-    setIgnore(false);
-    setPrompt({ Prompt: "New prompt requested." });
-    sendMessage(
-      JSON.stringify({
-        action: "sendPrompt",
-        include_tags: [],
-        ignore_tags: ["Ignore"],
-      })
-    );
+    getNewPrompt();
+    sendChangePrompt();
   };
 
   const handleIgnorePrompt = () => {
@@ -89,7 +121,7 @@ const PromptCard = ({
   const handleEndSong = () => {
     sendMessage(
       JSON.stringify({
-        action: "sendEndingPrompt",
+        action: "sendPrompt",
         include_tags: ["End", "End-Only"],
         ignore_tags: ["Ignore"],
       })

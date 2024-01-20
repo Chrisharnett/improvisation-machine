@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 
 const useWebSocket = (url, onMessageHandler) => {
-  const [ws, setWs] = useState(null);
+  const ws = useRef(null);
 
   useEffect(() => {
-    const webSocket = new WebSocket(url);
+    ws.current = new WebSocket(url);
+    const webSocket = ws.current;
 
     webSocket.onopen = () => {
       console.log("WebSocket connection established.");
@@ -25,14 +26,13 @@ const useWebSocket = (url, onMessageHandler) => {
       console.log("WebSocket connection closed");
     };
 
-    setWs(webSocket);
-
     return () => {
       webSocket.close();
     };
   }, [url]);
 
   const sendMessage = (message) => {
+    console.log("ws: ", ws);
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(message);
     }

@@ -13,8 +13,6 @@ import { useState } from "react";
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
 
-  console.log("starting");
-
   return (
     <>
       <BrowserRouter>

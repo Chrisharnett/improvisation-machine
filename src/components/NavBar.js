@@ -26,11 +26,9 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
       const response = await axios.post(`${process.env.REACT_APP_AUTH_API}`, {
         body: JSON.stringify({ code: code }),
       });
-      const token = response.data.body;
-      if (token.id_token) {
-        saveToken(token);
-        setLoggedIn(true);
-      }
+      const newToken = response.data.body;
+      saveToken(newToken);
+      setLoggedIn(true);
     } catch (error) {
       console.error("Error fetching token:", error);
       setError(error);

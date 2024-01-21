@@ -15,7 +15,7 @@ const PerformPage = () => {
 
   return (
     <>
-      <h1> This is the performance interface </h1>
+      <h1> Play based on the prompt. </h1>
       <PromptCard
         performanceCode={performanceCode}
         isLoading={isLoading}

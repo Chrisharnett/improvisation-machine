@@ -18,7 +18,6 @@ function App() {
         <Navigation loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/test" element={<WebSocketTest />} />
           <Route path="/joinPerformance" element={<JoinPerformance />} />
           <Route path="/performerPage" element={<PerformerPage />} />
           <Route element={<PrivateRoute />}>

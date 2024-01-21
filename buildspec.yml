@@ -18,4 +18,4 @@ phases:
 artifacts:
   files:
     - "**/*"
-  base-directory: "build" # The output directory of your React build
+  base-directory: "build"

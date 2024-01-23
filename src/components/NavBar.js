@@ -71,7 +71,7 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
               )}
               {!loggedIn && (
                 // <Nav.Link href="/joinPerformance">Join Performance</Nav.Link>
-                <Nav.Link href="/performPage">Join Performance</Nav.Link>
+                <Nav.Link href="/performerPage">Join Performance</Nav.Link>
               )}
             </Nav>
 

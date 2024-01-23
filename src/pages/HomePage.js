@@ -1,7 +1,7 @@
 const HomePage = () => {
   return (
     <>
-      <h1> The A5tral8og improvisation prompting machine </h1>
+      <h1> Welcome to the A5tral8og improvisation prompting machine </h1>
       <br></br>
       <h2> Join a performance and start playing. </h2>
       <br></br>

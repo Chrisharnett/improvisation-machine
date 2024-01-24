@@ -7,7 +7,7 @@ const HomePage = () => {
     <>
       <h1> Welcome to the A5tral8og improvisation prompting machine </h1>
       <hr></hr>
-      <h2>{date.toLocaleDateString("en-CA")}</h2>
+      {/* <h2>{date.toLocaleDateString("en-CA")}</h2> */}
       This app gives customized prompts to improvisers to help direct the
       creation of spontaneous music. This is the first prototype is designed to
       deliver randomized prompts from a bank of available prompts. Once this

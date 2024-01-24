@@ -30,8 +30,10 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
           redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK,
         })
       );
+
       console.log(response);
       const newToken = response.data;
+
       saveToken(newToken);
       setLoggedIn(true);
     } catch (error) {

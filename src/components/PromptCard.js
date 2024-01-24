@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, Button } from "react-bootstrap";
 import useWebSocket from "../hooks/useWebSocket.js";
 
@@ -17,72 +17,57 @@ const PromptCard = ({
   const [error, setError] = useState(null);
   const [logPrompt, setLogPrompt] = useState(null);
   const [nextPrompt, setNextPrompt] = useState(null);
+  const [isFetchingNextPrompt, setIsFetchingNextPrompt] = useState(false);
 
-  const endSong = () => {
-    setSongEnd(true);
-    setPerformanceCode(null);
-    //log Performance - probably a modal
-    // Maybe move logging functionality outside, or here.
-    // setPerformanceCode(null);
-  };
-  const getNewPrompt = () => {
-    console.log("getNewPrompt");
-    sendMessage(
-      JSON.stringify({
-        action: "sendPrompt",
-        include_tags: [],
-        ignore_tags: ["Ignore"],
-      })
-    );
-  };
+  const currentPromptRef = useRef(null);
+  const nextPromptRef = useRef(null);
 
-  const sendChangePrompt = () => {
-    sendMessage(
-      JSON.stringify({
-        action: "changePrompt",
-      })
-    );
-  };
-
-  useEffect(() => {
-    //add logic to log a prompt whenever it is changed
-  }, [logPrompt]);
+  // const endSong = () => {
+  //   setSongEnd(true);
+  //   setPerformanceCode(null);
+  //   //log Performance - probably a modal
+  //   // Maybe move logging functionality outside, or here.
+  //   // setPerformanceCode(null);
+  // };
 
   const handleWebSocketMessage = useCallback((event) => {
     try {
       if (event.data !== "") {
+        setIsFetchingNextPrompt(false);
         const response = JSON.parse(event.data);
         switch (response.action) {
           case "newPrompt":
             const newPrompt = JSON.parse(response.prompt.body);
-            if (!nextPrompt) {
-              console.log("prompt 1 arrives");
-              setNextPrompt(newPrompt);
-              getNewPrompt();
-            } else if (!prompt) {
+            if (!currentPromptRef.current) {
+              currentPromptRef.current = newPrompt;
               setPrompt(newPrompt);
+            } else {
+              nextPromptRef.current = newPrompt;
+              setNextPrompt(newPrompt);
             }
             if (newPrompt.Tags.includes("End-Only")) {
-              endSong();
+              // endSong();
             }
             break;
 
           case "changePrompt":
-            if (nextPrompt) {
-              const outgoingPrompt = prompt;
-              const endTime = Date().toISOString();
-              setLogPrompt({
-                performanceCode,
-                outgoingPrompt,
-                startTime: startTime,
-                endTime: endTime,
-                ignore: ignore,
-              });
-              setPrompt(nextPrompt);
-              setStartTime(Date().toISOString());
-              getNewPrompt();
+            if (nextPromptRef.current) {
+              const outgoingPrompt = currentPromptRef.current;
+              setPrompt(nextPromptRef.current);
+              currentPromptRef.current = nextPromptRef.current;
+              nextPromptRef.current = null;
+              setNextPrompt(null);
+              // const endTime = new Date().toISOString();
+              // setLogPrompt({
+              //   performanceCode,
+              //   outgoingPrompt,
+              //   startTime: startTime,
+              //   endTime: endTime,
+              //   ignore: ignore,
+              // });
+              setStartTime(new Date().toISOString());
+              fetchNextPrompt();
             } else {
-              getNewPrompt();
               setPrompt(null);
             }
             break;
@@ -101,14 +86,56 @@ const PromptCard = ({
     handleWebSocketMessage
   );
 
+  const fetchNextPrompt = useCallback(() => {
+    console.log("fetch prompt: ", isFetchingNextPrompt);
+    if (!isFetchingNextPrompt) {
+      setIsFetchingNextPrompt(true);
+      sendMessage(
+        JSON.stringify({
+          action: "sendPrompt",
+          include_tags: [],
+          ignore_tags: ["Ignore"],
+        })
+      );
+    }
+  }, []);
+
+  const sendChangePrompt = () => {
+    sendMessage(
+      JSON.stringify({
+        action: "changePrompt",
+      })
+    );
+  };
+
   useEffect(() => {
-    if (performanceCode) {
-      getNewPrompt();
+    //add logic to log a prompt whenever it is changed
+  }, [logPrompt]);
+
+  useEffect(() => {
+    if (
+      (!nextPromptRef.current || !currentPromptRef.current) &&
+      !isFetchingNextPrompt
+    ) {
+      fetchNextPrompt();
+      console.log("fetching next prompt");
+    }
+  }, [currentPromptRef.current]);
+
+  useEffect(() => {
+    if (performanceCode && !currentPromptRef.current) {
+      setIsFetchingNextPrompt(true);
+      sendMessage(
+        JSON.stringify({
+          action: "sendPrompt",
+          include_tags: [],
+          ignore_tags: ["Ignore", "End-Only"],
+        })
+      );
     }
   }, [performanceCode]);
 
   const handleNextPrompt = () => {
-    getNewPrompt();
     sendChangePrompt();
   };
 
@@ -143,7 +170,9 @@ const PromptCard = ({
           {!prompt && !isLoading && (
             <Card.Title className="fs-1">{message}</Card.Title>
           )}
-          <Card.Text className=""></Card.Text>
+          {nextPrompt && (
+            <Card.Text className="">On Deck: {nextPrompt.Prompt}</Card.Text>
+          )}
           {
             <>
               <Button

@@ -2,15 +2,17 @@ import { Button, Form, Container, Row, Col } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { CreatePromptSuccessModal } from "../modals/CreatePromptSuccessModal";
+import { useToken } from "../auth/useToken";
 
 const CreatePrompts = () => {
   const [newPrompt, setNewPrompt] = useState("");
   const [tags, setTags] = useState([]);
   const [selectedTags, setSelectedTags] = useState(new Set());
-  const [newTag, setNewTag] = useState(null);
+  const [newTag, setNewTag] = useState("");
   const [error, setError] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [savedPrompt, setSavedPrompt] = useState("");
+  const [token] = useToken();
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -38,9 +40,13 @@ const CreatePrompts = () => {
   };
 
   const handleAddTag = () => {
-    if (newTag && !tags.includes(newTag)) {
-      setTags([...tags, newTag]);
-      setSelectedTags(new Set([...selectedTags, newTag]));
+    if (newTag !== "" && ![...tags].includes(newTag)) {
+      const newTags = [...tags, newTag];
+      setTags(newTags);
+
+      const newSelectedTags = new Set(selectedTags);
+      newSelectedTags.add(newTag);
+      setSelectedTags(newSelectedTags);
       setNewTag("");
     }
   };
@@ -56,7 +62,7 @@ const CreatePrompts = () => {
         newPromptObject
         // {
         //   headers: {
-        //     Authorization: token,
+        //     Authorization: `Bearer ${token.id_token}`,
         //   },
         // }
       );
@@ -92,13 +98,15 @@ const CreatePrompts = () => {
           <Form.Group className="mb-3">
             <Form.Label className="mb-3">Tags:</Form.Label>
             <Row xs={1} sm={3} md={4} lg={5} className="g-3">
-              {tags.map((tag, index) => (
+              {tags.sort().map((tag, index) => (
                 <Col key={index}>
                   <Form.Check
                     key={index}
                     type="checkbox"
                     label={tag}
-                    checked={selectedTags.has(tag)}
+                    checked={
+                      selectedTags instanceof Set && selectedTags.has(tag)
+                    }
                     onChange={(e) => handleTagChange(tag, e.target.checked)}
                   />
                 </Col>

@@ -33,8 +33,8 @@ const useWebSocket = (url, onMessageHandler) => {
 
   const sendMessage = (message) => {
     console.log("ws: ", ws);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(message);
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(message);
     }
   };
 

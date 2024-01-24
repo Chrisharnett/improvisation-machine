@@ -104,7 +104,6 @@ const PromptCard = ({
   useEffect(() => {
     if (performanceCode) {
       getNewPrompt();
-      console.log("PerformanceCode");
     }
   }, [performanceCode]);
 

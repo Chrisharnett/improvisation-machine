@@ -23,10 +23,15 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
 
   const codeForToken = async (code) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_AUTH_API}`, {
-        body: JSON.stringify({ code: code }),
-      });
-      const newToken = response.data.body;
+      const response = await axios.post(
+        `${process.env.REACT_APP_AUTH_API}`,
+        JSON.stringify({
+          code: code,
+          redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK,
+        })
+      );
+      console.log(response);
+      const newToken = response.data;
       saveToken(newToken);
       setLoggedIn(true);
     } catch (error) {

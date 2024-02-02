@@ -60,11 +60,6 @@ const CreatePrompts = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_PROMPT_API}`,
         newPromptObject
-        // {
-        //   headers: {
-        //     Authorization: `Bearer ${token.id_token}`,
-        //   },
-        // }
       );
       setSavedPrompt(newPrompt);
       setShowSuccessModal(true);
@@ -79,71 +74,83 @@ const CreatePrompts = () => {
 
   return (
     <>
-      <Container>
-        <h1> Use this page to create prompts </h1>
-        <Form className="container w-50 justify-content-center">
-          <Form.Group className="mb-3">
-            <Form.Label className="" htmlFor="newPrompt">
-              Prompt:{" "}
-            </Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="a prompt to guide creation"
-              id="prompt"
-              value={newPrompt}
-              onChange={(e) => setNewPrompt(e.target.value)}
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label className="mb-3">Tags:</Form.Label>
-            <Row xs={1} sm={3} md={4} lg={5} className="g-3">
-              {tags.sort().map((tag, index) => (
-                <Col key={index}>
-                  <Form.Check
-                    key={index}
-                    type="checkbox"
-                    label={tag}
-                    checked={
-                      selectedTags instanceof Set && selectedTags.has(tag)
-                    }
-                    onChange={(e) => handleTagChange(tag, e.target.checked)}
-                  />
-                </Col>
-              ))}
-            </Row>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginTop: "10px",
-              }}
-            >
+      <div style={{ height: "10vh" }}></div>
+      <Container className="fullVHeight d-flex justify-content-center align-items-center">
+        <Container className="midLayer glass my-3">
+          <h1> Create new prompts. </h1>
+          <p>Tags help define how they behave in performance.</p>
+          <Form className="justify-content-center">
+            <Form.Group className="mb-3">
+              <Form.Label className="" htmlFor="newPrompt">
+                Prompt:{" "}
+              </Form.Label>
               <Form.Control
+                style={{ maxWidth: "100vh" }}
                 type="text"
-                placeholder="Add new tag"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="a prompt to guide creation"
+                id="prompt"
+                value={newPrompt}
+                onChange={(e) => setNewPrompt(e.target.value)}
               />
-              <Button className="" variant="success" onClick={handleAddTag}>
-                Add New Tag
-              </Button>
-            </div>
-          </Form.Group>
-          <hr></hr>
+            </Form.Group>
 
-          <Button className="" onClick={handleAddPrompt}>
-            Create Prompt
-          </Button>
-          <div style={{ height: "15vh" }}></div>
-        </Form>
+            <Form.Group className="mb-3">
+              <Form.Label className="mb-3">Tags:</Form.Label>
+              <Row xs={1} sm={3} md={4} lg={5} className="g-3">
+                {tags.sort().map((tag, index) => (
+                  <Col key={index}>
+                    <Form.Check
+                      key={index}
+                      type="checkbox"
+                      label={tag}
+                      checked={
+                        selectedTags instanceof Set && selectedTags.has(tag)
+                      }
+                      onChange={(e) => handleTagChange(tag, e.target.checked)}
+                    />
+                  </Col>
+                ))}
+              </Row>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginTop: "10px",
+                }}
+              >
+                <Form.Control
+                  type="text"
+                  placeholder="Add new tag"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  style={{ maxWidth: "100vh", marginRight: "5vh" }}
+                  className="mt-3"
+                />
+                <Button
+                  className="mt-3"
+                  variant="success"
+                  onClick={handleAddTag}
+                >
+                  Add New Tag
+                </Button>
+              </div>
+            </Form.Group>
+            <hr></hr>
+
+            <Button className="" onClick={handleAddPrompt}>
+              Create Prompt
+            </Button>
+            <div style={{ height: "15vh" }}></div>
+          </Form>
+        </Container>
+        <br></br>
+        <CreatePromptSuccessModal
+          show={showSuccessModal}
+          setShow={setShowSuccessModal}
+          prompt={savedPrompt}
+        />
       </Container>
-      <br></br>
-      <CreatePromptSuccessModal
-        show={showSuccessModal}
-        setShow={setShowSuccessModal}
-        prompt={savedPrompt}
-      />
+      <div style={{ height: "10vh" }}></div>
     </>
   );
 };

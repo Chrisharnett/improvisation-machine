@@ -32,7 +32,6 @@ const useWebSocket = (url, onMessageHandler) => {
   }, [url]);
 
   const sendMessage = (message) => {
-    console.log("ws: ", ws);
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(message);
     }

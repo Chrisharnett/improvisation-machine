@@ -6,32 +6,16 @@ const PromptCard = ({
   message,
   sendMessage,
   prompt,
-  setPrompt,
   nextPrompt,
-  setNextPrompt,
+  gameState,
 }) => {
-  // const [prompt, setPrompt] = useState(null);
   const [ignore, setIgnore] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [error, setError] = useState(null);
   const [logPrompt, setLogPrompt] = useState(null);
-  // const [nextPrompt, setNextPrompt] = useState(null);
   const [isFetchingNextPrompt, setIsFetchingNextPrompt] = useState(false);
-  const [firstPrompt, setFirstPrompt] = useState(true);
-
-  const currentPromptRef = useRef(null);
-  const nextPromptRef = useRef(null);
-
-  // const endSong = () => {
-  //   setSongEnd(true);
-  //   setPerformanceCode(null);
-  //   //log Performance - probably a modal
-  //   // Maybe move logging functionality outside, or here.
-  //   // setPerformanceCode(null);
-  // };
 
   const fetchNextPrompt = useCallback(() => {
-    console.log("fetch prompt: ", isFetchingNextPrompt);
     if (!isFetchingNextPrompt) {
       setIsFetchingNextPrompt(true);
       sendMessage(
@@ -47,24 +31,13 @@ const PromptCard = ({
   const sendChangePrompt = () => {
     sendMessage(
       JSON.stringify({
-        action: "changePrompt",
+        action: "sendPrompt",
+        gameState: gameState,
+        include_tags: [],
+        ignore_tags: ["Ignore", "Start Only", "End Only"],
       })
     );
   };
-
-  useEffect(() => {
-    //add logic to log a prompt whenever it is changed
-  }, [logPrompt]);
-
-  useEffect(() => {
-    if (
-      (!nextPromptRef.current || !currentPromptRef.current) &&
-      !isFetchingNextPrompt
-    ) {
-      fetchNextPrompt();
-      console.log("fetching next prompt");
-    }
-  }, [currentPromptRef.current]);
 
   const handleNextPrompt = () => {
     sendChangePrompt();
@@ -104,9 +77,7 @@ const PromptCard = ({
           }}
         >
           <Card.Body className="align-items-center">
-            {prompt && (
-              <Card.Title className="fs-1">{prompt.Prompt}</Card.Title>
-            )}
+            {prompt && <Card.Title className="fs-1">{prompt}</Card.Title>}
             {!prompt && isLoading && (
               <Card.Title className="fs-1">Loading...</Card.Title>
             )}
@@ -114,7 +85,7 @@ const PromptCard = ({
               <Card.Title className="fs-1">{message}</Card.Title>
             )}
             {nextPrompt && (
-              <Card.Text className="">On Deck: {nextPrompt.Prompt}</Card.Text>
+              <Card.Text className="">On Deck: {nextPrompt}</Card.Text>
             )}
             {
               <>

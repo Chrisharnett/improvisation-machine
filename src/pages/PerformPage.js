@@ -1,47 +1,56 @@
 import PromptCard from "../components/PromptCard";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Button, Container, Form, Row, Col } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
 import useWebSocket from "../hooks/useWebSocket.js";
 
 const PerformPage = () => {
-  const [performanceId, setPerformanceId] = useState(null);
+  const [performance_id, setPerformance_id] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("Click Begin Song to start");
   const [songEnd, setSongEnd] = useState(false);
   const [screenName, setScreenName] = useState(null);
   const [gameState, setGameState] = useState(null);
-  const [disableStartButton, setDisableStartButton] = useState(true);
   const [registered, setRegistered] = useState(false);
   const [prompt, setPrompt] = useState(null);
   const [nextPrompt, setNextPrompt] = useState(null);
-  const [performers, setPerformers] = useState(null);
 
-  const handleWebSocketMessage = useCallback((event) => {
-    try {
-      if (event.data !== "") {
-        const response = JSON.parse(event.data);
-        if (response.gameState) {
-          setGameState(response.gameState);
-          const { performanceId, performers, nextPrompt } = response.gameState;
-          for (let performer in performers) {
-            if (performer.screenName === screenName) {
-              setPrompt(performer.prompt);
+  const screenNameRef = useRef(screenName);
+
+  useEffect(() => {
+    screenNameRef.current = screenName;
+  }, [screenName]);
+
+  const handleWebSocketMessage = useCallback(
+    (event) => {
+      try {
+        if (event.data !== "") {
+          const response = JSON.parse(event.data);
+          if (response.gameState) {
+            setGameState(response.gameState);
+            setPerformance_id(response.gameState.performance_id);
+            const { performers, nextPrompt } = response.gameState;
+            for (let i in performers) {
+              if (performers[i].screenName === screenNameRef.current) {
+                setPrompt(performers[i].prompt);
+              }
             }
+            if (!prompt) {
+              setPrompt(performers[0].prompt);
+            }
+            if (nextPrompt) {
+              setNextPrompt(nextPrompt);
+            }
+          } else {
+            console.log("Unknown action: ", response.action);
           }
-          setPerformanceId(performanceId);
-          setPerformers(performers);
-          if (nextPrompt) {
-            setNextPrompt(nextPrompt);
-          }
-        } else {
-          console.log("Unknown action: ", response.action);
         }
+      } catch (e) {
+        console.log("Error: " + e);
       }
-    } catch (e) {
-      console.log("Error: " + e);
-    }
-  }, []);
+    },
+    [screenNameRef.current]
+  );
 
   const newPrompt = () => {};
 
@@ -60,7 +69,7 @@ const PerformPage = () => {
           JSON.stringify({
             action: "sendPrompt",
             gameState: gameState,
-            include_tags: ["Start", "Start Only"],
+            include_tags: [],
             ignore_tags: ["Ignore"],
           })
         );
@@ -68,36 +77,21 @@ const PerformPage = () => {
     }
   }, [gameState]);
 
-  // useEffect(() => {
-  //   if (gameState) {
-  //     const { screenName, performers, prompts } = gameState;
-  //     setScreenName(hostScreenName);
-  //     setPerformers(performers);
-  //     setPrompt(prompts.currentPrompt);
-  //     setNextPrompt(prompts.NextPrompt);
-  //   }
-  // }, [gameState]);
-
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);
   }, []);
 
-  // useEffect(() => {
-  //   if (gameState) {
-  //   }
-  // }, [gameState]);
-
   const handleStartPerformance = () => {
     // const id = uuidv4();
     const id = "test1234";
-    setPerformanceId(id);
+    setPerformance_id(id);
     setMessage("This takes a moment.");
     sendMessage(
       JSON.stringify({
         action: "startPerformance",
-        performanceId: id,
+        performance_id: id,
         screenName: screenName,
       })
     );
@@ -105,14 +99,14 @@ const PerformPage = () => {
   };
 
   const handleJoinPerformance = () => {
+    setRegistered(true);
     sendMessage(
       JSON.stringify({
         action: "joinPerformance",
-        performanceId: performanceId,
-        screenName: screenName,
+        performance_id: performance_id,
+        newPerformer: { screenName, prompt },
       })
     );
-    setRegistered(true);
   };
 
   const handleNextPerformance = () => {};
@@ -123,30 +117,34 @@ const PerformPage = () => {
       <Container className="fullVHeight d-flex justify-content-center align-items-center">
         <Container className="midLayer glass">
           <h1> Performance</h1>
-          <PromptCard
-            className="glass"
-            isLoading={isLoading}
-            message={message}
-            sendMessage={sendMessage}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            nextPrompt={nextPrompt}
-            setNextPrompt={setNextPrompt}
-          />
+          {registered && (
+            <PromptCard
+              className="glass"
+              isLoading={isLoading}
+              message={message}
+              sendMessage={sendMessage}
+              prompt={prompt}
+              setPrompt={setPrompt}
+              nextPrompt={nextPrompt}
+              setNextPrompt={setNextPrompt}
+              gameState={gameState}
+            />
+          )}
+
           <Row>
-            {performers && (
+            {gameState && (
               <>
                 <h2>Performers</h2>
-                {performers.map((performer, index) => (
-                  <Col sm="auto">
-                    <p key={index}>{performer.screenName}, </p>
+                {gameState.performers.map((performer, index) => (
+                  <Col key={performer.screenName + index} sm="auto">
+                    <p key={index}>{performer.screenName} </p>
                   </Col>
                 ))}
               </>
             )}
           </Row>
 
-          {!gameState && (
+          {!gameState && !registered && (
             <>
               <Form>
                 <Form.Group>
@@ -165,6 +163,7 @@ const PerformPage = () => {
               </Button>
             </>
           )}
+
           {gameState && !registered && (
             <>
               <Form>
@@ -189,7 +188,7 @@ const PerformPage = () => {
             </>
           )}
           {registered && (
-            <Button onClick={handleNextPerformance} disabled={performanceId}>
+            <Button onClick={handleNextPerformance} disabled={performance_id}>
               Next Song
             </Button>
           )}

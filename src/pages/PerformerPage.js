@@ -1,5 +1,6 @@
 import PromptCard from "../components/PromptCard";
 import { useEffect, useState } from "react";
+import { Container } from "react-bootstrap";
 
 const PerformPage = () => {
   const [performanceCode, setPerformanceCode] = useState(null);
@@ -15,15 +16,19 @@ const PerformPage = () => {
 
   return (
     <>
-      <h1> Play based on the prompt. </h1>
-      <PromptCard
-        performanceCode={performanceCode}
-        isLoading={isLoading}
-        message={message}
-        setMessage={setMessage}
-        songEnd={songEnd}
-        setSongEnd={setSongEnd}
-      />
+      <Container className="fullVHeight d-flex justify-content-center align-items-center">
+        <Container className="midLayer glass">
+          <h1> Play based on the prompt. </h1>
+          <PromptCard
+            performanceCode={performanceCode}
+            isLoading={isLoading}
+            message={message}
+            setMessage={setMessage}
+            songEnd={songEnd}
+            setSongEnd={setSongEnd}
+          />
+        </Container>
+      </Container>
     </>
   );
 };

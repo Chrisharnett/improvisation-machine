@@ -1,0 +1,9 @@
+This is just a test.
+
+aws sts assume-role --role-arn arn:aws:iam::441281452880:role/service-role/AWSCodePipelineServiceRole-us-east-1-Improv_Machine --role-session-name Test-session
+
+export AWS_ACCESS_KEY_ID=ASIAWNPTMTNILVARSL7W
+export AWS_SECRET_ACCESS_KEY=UD/smrDy4V0kh9+t14LGa6tx7UuozcvF69RMTlRI
+export AWS_SESSION_TOKEN=IQoJb3JpZ2luX2VjEMT//////////wEaCXVzLWVhc3QtMSJHMEUCIQCF1ZP2oy05jRYgaZ2m8W5zCv6Xelzetu8sA114GAgalQIgeVmDRwxQSDg/6fZyEEb15pe8iXKCj1rLEvKhf2NE0xQqogIIjf//////////ARAAGgw0NDEyODE0NTI4ODAiDA6s/JsMGogD9JpEmSr2AZp7l7FAyemqBMzTp+SIh+AsHMeiRA/K9Bc9OpeQTaarwGez01lhn6j7qpOpH6WFtYu/87QnnZhTskFDjbDnLTSX5io82Gjsvv8QhlenKFU3yHhOFvjyEYlM1lW5qVYanb53Fv93KVWaIE+2440yMDDERJ96qNHUtMm3LSwEWOjjnWIP7cy3YYHf8eynYxwADBMqUz0+XL95z7yq7ypjFK9Sn/gcYLWyXVYeK9ZzJGqmvS19RZ50Nfe0n60NgvCQqBE3t5ER8Cask5boiGPl5ThObLWyLVZqTwcmIhPaPRAsyiSE1Bjz/WtvME3mF7lC6vYrckvTyjC69v2tBjqdAQGGrlbGJXtIBfFsstXGXyGf3s4oOq2jib2akgOrLWDOMzwMkfzYtEgEBcPG66kZ/Us5r6I/+WWxIbrMFRey0IxukojZwcpjBp3Hik3JtsyJUreyHKG3J8Pqm/yxBhpfPnkI/oZCMnCUWZ8fqciIVzhv5OHeRBQr8UgZvMLceXh5d1K36ZQ6lC9xL2un99//ZC3XrSmiFR359jKEfZ0=
+
+aws s3 cp "/Users/christopherharnett/Library/CloudStorage/OneDrive-CollegeoftheNorthAtlantic/Documents/Software Development/ImprovisationMachine/improvisation-machine/testFile.txt" s3://improv-machine/test-file.txt

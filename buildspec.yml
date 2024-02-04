@@ -13,17 +13,17 @@ phases:
       - echo Build started on `date`
       - npm run build
   post_build:
-  commands:
-    - echo Build completed on `date`
-    - cd build
-    - zip -r build.zip .
-    - mv build.zip ../build.zip
-    - pwd
-    - ls -alh
-    - echo "Verifying the existence of build.zip in the root directory"
-    - cd ..
-    - pwd
-    - ls -alh
+    commands:
+      - echo Build completed on `date`
+      - cd build
+      - zip -r build.zip .
+      - mv build.zip ../build.zip
+      - pwd
+      - ls -alh
+      - echo "Verifying the existence of build.zip in the root directory"
+      - cd ..
+      - pwd
+      - ls -alh
 
 artifacts:
   # Specify the root zip file as the artifact

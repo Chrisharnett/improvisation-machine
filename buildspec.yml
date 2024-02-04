@@ -15,17 +15,12 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      - cd build
-      - zip -r build.zip .
-      - mv build.zip ../build.zip
-      - pwd
-      - ls -alh
-      - echo "Verifying the existence of build.zip in the root directory"
-      - cd ..
-      - pwd
+      # No need to navigate anywhere, just zip the contents of the build directory
+      - zip -r build.zip build/*
+      # Make sure the build.zip is in the root directory
       - ls -alh
 
 artifacts:
-  # Specify the root zip file as the artifact
+  # Specify the zip file at the root of the workspace as the artifact
   files:
     - build.zip

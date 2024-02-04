@@ -15,12 +15,13 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      # No need to navigate anywhere, just zip the contents of the build directory
-      - zip -r build.zip build/*
-      # Make sure the build.zip is in the root directory
-      - ls -alh
+      # Navigate to the build directory and create a zip file without the root directory
+      - cd build
+      - zip -r -q ../build.zip .
+      # Move back to the root directory
+      - cd ..
 
 artifacts:
-  # Specify the zip file at the root of the workspace as the artifact
+  # Specify the root zip file as the artifact
   files:
     - build.zip

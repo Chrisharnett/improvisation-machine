@@ -84,8 +84,8 @@ const PerformPage = () => {
   }, []);
 
   const handleStartPerformance = () => {
-    // const id = uuidv4();
-    const id = "test1234";
+    const id = uuidv4();
+    // const id = "test1234";
     setPerformance_id(id);
     setMessage("This takes a moment.");
     sendMessage(

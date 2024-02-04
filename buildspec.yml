@@ -18,6 +18,7 @@ phases:
       # Navigate to the build directory and create a zip file there
       - cd build
       - zip -r build.zip .
+      - cd ..
 
 artifacts:
   # Specify the root zip file as the artifact

@@ -1,4 +1,13 @@
-import { Button, Form, Container, Row, Col } from "react-bootstrap";
+import {
+  Button,
+  Form,
+  Container,
+  Row,
+  Col,
+  Card,
+  Dropdown,
+  DropdownButton,
+} from "react-bootstrap";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { CreatePromptSuccessModal } from "../modals/CreatePromptSuccessModal";
@@ -13,6 +22,9 @@ const CreatePrompts = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [savedPrompt, setSavedPrompt] = useState("");
   const [token] = useToken();
+  const [currentPrompts, setCurrentPrompts] = useState([]);
+  const [filteredPrompts, setFilteredPrompts] = useState(currentPrompts);
+  const [promptFilter, setPromptFilter] = useState(null);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -20,6 +32,12 @@ const CreatePrompts = () => {
         const response = await axios.get(`${process.env.REACT_APP_TAGS_API}`);
         const tagsArray = JSON.parse(response.data.body);
         setTags(tagsArray);
+        const promptResponse = await axios.get(
+          `${process.env.REACT_APP_PROMPT_API}`
+        );
+        const promptsArray = promptResponse.data;
+        setCurrentPrompts(promptsArray);
+        setFilteredPrompts(promptsArray);
       } catch (error) {
         console.error("Error fetching tags:", error);
         setError(error);
@@ -53,6 +71,7 @@ const CreatePrompts = () => {
 
   const handleAddPrompt = async () => {
     try {
+      setShowSuccessModal(true);
       const newPromptObject = {
         Prompt: newPrompt,
         Tags: Array.from(selectedTags),
@@ -62,7 +81,6 @@ const CreatePrompts = () => {
         newPromptObject
       );
       setSavedPrompt(newPrompt);
-      setShowSuccessModal(true);
       setNewPrompt("");
       setSelectedTags([]);
     } catch (error) {
@@ -72,85 +90,147 @@ const CreatePrompts = () => {
     setError(error);
   };
 
+  useEffect(() => {
+    if (promptFilter) {
+      const filtered = currentPrompts.filter((prompt) =>
+        prompt.Tags.includes(promptFilter)
+      );
+      setFilteredPrompts(filtered);
+    } else {
+      setFilteredPrompts(currentPrompts);
+    }
+  }, [promptFilter, currentPrompts]);
+
   return (
     <>
       <div style={{ height: "10vh" }}></div>
-      <Container className="fullVHeight d-flex justify-content-center align-items-center">
-        <Container className="midLayer glass my-3">
+      <Container className="fullVHeight d-flex flex-column align-items-center">
+        <Container className="midLayer glass my-3 p-2" style={{ width: "80%" }}>
           <h1> Create new prompts. </h1>
-          <p>Tags help define how they behave in performance.</p>
-          <Form className="justify-content-center">
-            <Form.Group className="mb-3">
-              <Form.Label className="" htmlFor="newPrompt">
-                Prompt:{" "}
-              </Form.Label>
-              <Form.Control
-                style={{ maxWidth: "100vh" }}
-                type="text"
-                placeholder="a prompt to guide creation"
-                id="prompt"
-                value={newPrompt}
-                onChange={(e) => setNewPrompt(e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label className="mb-3">Tags:</Form.Label>
-              <Row xs={1} sm={3} md={4} lg={5} className="g-3">
-                {tags.sort().map((tag, index) => (
-                  <Col key={index}>
-                    <Form.Check
-                      key={index}
-                      type="checkbox"
-                      label={tag}
-                      checked={
-                        selectedTags instanceof Set && selectedTags.has(tag)
-                      }
-                      onChange={(e) => handleTagChange(tag, e.target.checked)}
-                    />
-                  </Col>
-                ))}
-              </Row>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginTop: "10px",
-                }}
-              >
+          <p>Tags define how a prompt behaves during performance.</p>
+          <Form>
+            <Form.Label className="" htmlFor="newPrompt">
+              Prompt:{" "}
+            </Form.Label>
+            <Row className="align-items-center">
+              <Col>
                 <Form.Control
+                  // className="mb-2"
+                  // style={{ width: "auto" }}
                   type="text"
-                  placeholder="Add new tag"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  style={{ maxWidth: "100vh", marginRight: "5vh" }}
-                  className="mt-3"
+                  placeholder="a prompt to guide creation"
+                  id="prompt"
+                  value={newPrompt}
+                  onChange={(e) => setNewPrompt(e.target.value)}
                 />
-                <Button
-                  className="mt-3"
-                  variant="success"
-                  onClick={handleAddTag}
-                >
-                  Add New Tag
+              </Col>
+              <Col xs="auto">
+                <Button className="" onClick={handleAddPrompt}>
+                  Create Prompt
                 </Button>
-              </div>
-            </Form.Group>
-            <hr></hr>
+              </Col>
+            </Row>
 
-            <Button className="" onClick={handleAddPrompt}>
-              Create Prompt
-            </Button>
-            <div style={{ height: "15vh" }}></div>
+            <Form.Label className="mb-3">Tags:</Form.Label>
+            <Row xs={1} sm={3} md={4} lg={5} className="g-3">
+              {tags.sort().map((tag, index) => (
+                <Col key={index}>
+                  <Form.Check
+                    type="checkbox"
+                    label={tag}
+                    checked={
+                      selectedTags instanceof Set && selectedTags.has(tag)
+                    }
+                    onChange={(e) => handleTagChange(tag, e.target.checked)}
+                  />
+                </Col>
+              ))}
+            </Row>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginTop: "10px",
+              }}
+            >
+              <Form.Control
+                type="text"
+                placeholder="Add new tag"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                style={{ maxWidth: "50vh", marginRight: "5vh" }}
+                // className="mt-3"
+              />
+              <Button variant="success" onClick={handleAddTag}>
+                Add New Tag
+              </Button>
+            </div>
           </Form>
         </Container>
-        <br></br>
-        <CreatePromptSuccessModal
-          show={showSuccessModal}
-          setShow={setShowSuccessModal}
-          prompt={savedPrompt}
-        />
+
+        <Container className="midLayer my-3 p-4" style={{ width: "80%" }}>
+          <Card
+            style={{
+              backdropFilter: "blur(10px) saturate(50%)",
+              WebkitBackdropFilter: "blur(21px) saturate(50%)",
+              backgroundColor: "rgba(1, 1, 1, 0.3)",
+              border: "1px solid rgba(255, 255, 255, 0.01)",
+              borderRadius: "15px",
+              color: "rgb(255, 255, 255, 1)",
+            }}
+          >
+            <Card.Title className="fs-3 p-2">
+              Current Prompts
+              <DropdownButton
+                className="mt-2"
+                title={
+                  promptFilter ? `Filter: ${promptFilter}` : "Filter Prompts"
+                }
+              >
+                <Dropdown.Item onClick={() => setPromptFilter(null)}>
+                  Show All
+                </Dropdown.Item>
+
+                {tags.sort().map((tag, index) => (
+                  <Dropdown.Item
+                    key={index}
+                    onClick={() => setPromptFilter(tag)}
+                  >
+                    {tag}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+            </Card.Title>
+            <Card.Body>
+              <Row className="mb-2">
+                <Col sm="6">
+                  <h4>Prompt</h4>
+                </Col>
+                <Col>
+                  <h4>Tags</h4>
+                </Col>
+              </Row>
+              {filteredPrompts.map((prompt, index) => (
+                <Row key={index}>
+                  <Col sm="6">
+                    <Card.Text>{prompt.Prompt}</Card.Text>
+                  </Col>
+                  <Col>
+                    <Card.Text key={index}>{prompt.Tags.join(", ")}</Card.Text>
+                  </Col>
+                </Row>
+              ))}
+            </Card.Body>
+          </Card>
+        </Container>
       </Container>
+
       <div style={{ height: "10vh" }}></div>
+      <CreatePromptSuccessModal
+        show={showSuccessModal}
+        setShow={setShowSuccessModal}
+        prompt={savedPrompt}
+      />
     </>
   );
 };

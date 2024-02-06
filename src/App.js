@@ -8,22 +8,15 @@ import JoinPerformance from "./pages/JoinPerformance.js";
 import PerformerPage from "./pages/PerformerPage.js";
 import { PrivateRoute } from "./auth/privateRoute.js";
 import { useState, useEffect } from "react";
+import { Backgrounds } from "./util/Backgrounds.js";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    const backgrounds = [
-      "/Backgrounds/AI_Sax_Band_1.webp",
-      "/Backgrounds/AI_Sax_Band_2.webp",
-      "/Backgrounds/AI_Sax_Band_3.webp",
-      "/Backgrounds/AI_Sax_Band_4.webp",
-      "/Backgrounds/AI_Sax_Pics9.png",
-    ];
-
     const randomBackground =
-      backgrounds[Math.floor(Math.random() * backgrounds.length)];
+      Backgrounds[Math.floor(Math.random() * Backgrounds.length)];
 
     document.body.style.backgroundImage = `url(${randomBackground})`;
     document.body.style.backgroundSize = "cover";
@@ -45,7 +38,10 @@ function App() {
           setUserData={setUserData}
         />
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={<HomePage loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
+          />
           <Route path="/joinPerformance" element={<JoinPerformance />} />
           <Route path="/performerPage" element={<PerformerPage />} />
           <Route element={<PrivateRoute />}>

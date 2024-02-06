@@ -18,8 +18,8 @@ phases:
       # Navigate to the build directory and create a zip file without the root directory
       - cd build
       - zip -r -q ../build.zip .
-      # Move back to the root directory
-      - cd ..
+      # Move back to the root directory - could be causing issue with folders?
+      # - cd ..
 
 artifacts:
   # Specify the root zip file as the artifact

@@ -81,10 +81,10 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
                   <Nav.Link href="/createPrompts">Create Prompts</Nav.Link>
                 </>
               )}
-              {!loggedIn && (
+              {/* {!loggedIn && (
                 // <Nav.Link href="/joinPerformance">Join Performance</Nav.Link>
                 <Nav.Link href="/performerPage">Join Performance</Nav.Link>
-              )}
+              )} */}
             </Nav>
 
             {loggedIn && (

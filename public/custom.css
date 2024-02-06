@@ -23,7 +23,7 @@ body {
     margin: 5vh auto;
     
     max-height: auto;
-    max-width: 90%;
+    /* max-width: 90%; */
     padding: 1em;
   }
 

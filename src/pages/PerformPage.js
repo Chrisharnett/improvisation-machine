@@ -7,13 +7,14 @@ import useWebSocket from "../hooks/useWebSocket.js";
 const PerformPage = () => {
   const [performance_id, setPerformance_id] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState("Click Begin Song to start");
+  // const [message, setMessage] = useState("Click Begin Song to start");
   const [songEnd, setSongEnd] = useState(false);
   const [screenName, setScreenName] = useState(null);
   const [gameState, setGameState] = useState(null);
   const [registered, setRegistered] = useState(false);
   const [prompt, setPrompt] = useState(null);
   const [nextPrompt, setNextPrompt] = useState(null);
+  const [harmonyPrompt, setHarmonyPrompt] = useState(null);
 
   const screenNameRef = useRef(screenName);
 
@@ -85,9 +86,7 @@ const PerformPage = () => {
 
   const handleStartPerformance = () => {
     const id = uuidv4();
-    // const id = "test1234";
     setPerformance_id(id);
-    setMessage("This takes a moment.");
     sendMessage(
       JSON.stringify({
         action: "startPerformance",
@@ -109,6 +108,8 @@ const PerformPage = () => {
     );
   };
 
+  const handleEndSong = () => {};
+
   const handleNextPerformance = () => {};
 
   return (
@@ -117,32 +118,44 @@ const PerformPage = () => {
       <Container className="fullVHeight d-flex justify-content-center align-items-center">
         <Container className="midLayer glass">
           <h1> Performance</h1>
-          {registered && (
-            <PromptCard
-              className="glass"
-              isLoading={isLoading}
-              message={message}
-              sendMessage={sendMessage}
-              prompt={prompt}
-              setPrompt={setPrompt}
-              nextPrompt={nextPrompt}
-              setNextPrompt={setNextPrompt}
-              gameState={gameState}
-            />
-          )}
+          {registered && gameState && (
+            <>
+              <Row>
+                <Col>
+                  {/* Harmonic Prompt */}
+                  <PromptCard
+                    className="glass"
+                    promptTitle="Harmonic Prompt"
+                    sendMessage={sendMessage}
+                    prompt={prompt}
+                    gameState={gameState}
+                  />
+                </Col>
+                <Col>
+                  {/* Current Prompt */}
+                  <PromptCard
+                    className="glass"
+                    promptTitle="Current Prompt"
+                    sendMessage={sendMessage}
+                    prompt={prompt}
+                    gameState={gameState}
+                  />
+                </Col>
+                <Col>
+                  <PromptCard
+                    className="glass"
+                    promptTitle="On Deck"
+                    isLoading={isLoading}
+                    sendMessage={sendMessage}
+                    prompt={gameState.nextPrompt}
+                    gameState={gameState}
+                  />
+                </Col>
 
-          <Row>
-            {gameState && (
-              <>
-                <h2>Performers</h2>
-                {gameState.performers.map((performer, index) => (
-                  <Col key={performer.screenName + index} sm="auto">
-                    <p key={index}>{performer.screenName} </p>
-                  </Col>
-                ))}
-              </>
-            )}
-          </Row>
+                {/* On Deck Prompt */}
+              </Row>
+            </>
+          )}
 
           {!gameState && !registered && (
             <>
@@ -188,10 +201,36 @@ const PerformPage = () => {
             </>
           )}
           {registered && (
-            <Button onClick={handleNextPerformance} disabled={performance_id}>
+            <Button
+              type="submit"
+              className="m-2"
+              onClick={handleEndSong}
+              disabled={!prompt}
+            >
+              End Song
+            </Button>
+          )}
+          {registered && !performance_id && (
+            <Button
+              className="m-2"
+              onClick={handleNextPerformance}
+              disabled={performance_id}
+            >
               Next Song
             </Button>
           )}
+          <Row className="mt-3">
+            {gameState && (
+              <>
+                <h2>Registered Performers</h2>
+                {gameState.performers.map((performer, index) => (
+                  <Col key={performer.screenName + index} sm="auto">
+                    <p key={index}>{performer.screenName} </p>
+                  </Col>
+                ))}
+              </>
+            )}
+          </Row>
         </Container>
       </Container>
     </>

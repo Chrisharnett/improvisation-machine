@@ -1,14 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Card, Button, Container } from "react-bootstrap";
+import { Card, Button, Container, Row, Col } from "react-bootstrap";
 
-const PromptCard = ({
-  isLoading,
-  message,
-  sendMessage,
-  prompt,
-  nextPrompt,
-  gameState,
-}) => {
+const PromptCard = ({ promptTitle, sendMessage, prompt, gameState }) => {
   const [ignore, setIgnore] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [error, setError] = useState(null);
@@ -76,47 +69,39 @@ const PromptCard = ({
             color: "rgb(255, 255, 255, 1)",
           }}
         >
-          <Card.Body className="align-items-center">
-            {prompt && <Card.Title className="fs-1">{prompt}</Card.Title>}
-            {!prompt && isLoading && (
-              <Card.Title className="fs-1">Loading...</Card.Title>
-            )}
-            {!prompt && !isLoading && (
-              <Card.Title className="fs-1">{message}</Card.Title>
-            )}
-            {nextPrompt && (
-              <Card.Text className="">On Deck: {nextPrompt}</Card.Text>
-            )}
-            {
-              <>
-                <Button
-                  type="submit"
-                  className="mx-2"
-                  onClick={handleNextPrompt}
-                  disabled={!prompt}
-                >
-                  Next Prompt
-                </Button>
-                <Button
-                  type="submit"
-                  className="mx-2"
-                  onClick={handleEndSong}
-                  disabled={!prompt}
-                >
-                  End Song
-                </Button>
-                <Button
-                  type="submit"
-                  variant="danger"
-                  className="mx-2"
-                  onClick={handleIgnorePrompt}
-                  disabled={!prompt}
-                >
-                  Ignore Prompt
-                </Button>
-              </>
-            }
-          </Card.Body>
+          {prompt && (
+            <>
+              <Card.Title className="p-2">{promptTitle}</Card.Title>
+              <Card.Body className="fs-1">{prompt}</Card.Body>
+              <Card.Footer>
+                <Row>
+                  {promptTitle !== "On Deck" && (
+                    <Button
+                      type="submit"
+                      className="mx-2"
+                      onClick={handleNextPrompt}
+                      disabled={!prompt}
+                      variant="success"
+                    >
+                      Next
+                    </Button>
+                  )}
+                  {promptTitle === "On Deck" && (
+                    <Button
+                      type="submit"
+                      variant="danger"
+                      className="mx-2"
+                      onClick={handleIgnorePrompt}
+                      disabled={!prompt}
+                    >
+                      Ignore
+                    </Button>
+                  )}
+                </Row>
+              </Card.Footer>
+            </>
+          )}
+          {/* </Card.Body> */}
         </Card>
       </Container>
     </>

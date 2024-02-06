@@ -14,7 +14,8 @@ const PerformPage = () => {
   const [registered, setRegistered] = useState(false);
   const [prompt, setPrompt] = useState(null);
   const [nextPrompt, setNextPrompt] = useState(null);
-  const [harmonyPrompt, setHarmonyPrompt] = useState(null);
+  const [disableButtons, setDisableButtons] = useState(false);
+  const [ignore, setIgnore] = useState(false);
 
   const screenNameRef = useRef(screenName);
 
@@ -22,61 +23,102 @@ const PerformPage = () => {
     screenNameRef.current = screenName;
   }, [screenName]);
 
-  const handleWebSocketMessage = useCallback(
-    (event) => {
-      try {
-        if (event.data !== "") {
-          const response = JSON.parse(event.data);
-          if (response.gameState) {
-            setGameState(response.gameState);
-            setPerformance_id(response.gameState.performance_id);
-            const { performers, nextPrompt } = response.gameState;
-            for (let i in performers) {
-              if (performers[i].screenName === screenNameRef.current) {
-                setPrompt(performers[i].prompt);
-              }
-            }
-            if (!prompt) {
-              setPrompt(performers[0].prompt);
-            }
-            if (nextPrompt) {
-              setNextPrompt(nextPrompt);
-            }
-          } else {
-            console.log("Unknown action: ", response.action);
-          }
-        }
-      } catch (e) {
-        console.log("Error: " + e);
-      }
-    },
-    [screenNameRef.current]
-  );
+  const gameStateRef = useRef(gameState);
 
-  const newPrompt = () => {};
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  const handleWebSocketMessage = useCallback((event) => {
+    try {
+      if (event.data !== "") {
+        const response = JSON.parse(event.data);
+        if (response.action === "incomingGameChange") {
+          setDisableButtons(true);
+          return;
+        }
+        if (response.gameState) {
+          setGameState(response.gameState);
+          setPerformance_id(response.gameState.performance_id);
+          const { performers } = response.gameState;
+          for (let i in performers) {
+            if (performers[i].screenName === screenNameRef.current) {
+              setPrompt(performers[i].prompt);
+            }
+          }
+          if (!prompt) {
+            setPrompt(performers[0].prompt);
+          }
+          setDisableButtons(false);
+        } else {
+          console.log("Unknown action: ", response.action);
+        }
+      }
+    } catch (e) {
+      console.log("Error: " + e);
+    }
+  }, []);
+
+  // useEffect(() => {
+  //   const nextPromptTimer = setInterval(() => {
+  //     if (gameStateRef.current) {
+  //       gameStateRef.current.nextPrompt = null;
+  //       getNewPrompt();
+  //     }
+  //   }, 20000);
+  //   return () => clearInterval(nextPromptTimer);
+  // }, []);
+
+  const getNewPrompt = () => {
+    sendMessage(
+      JSON.stringify({
+        action: "sendPrompt",
+        gameState: gameStateRef.current,
+        include_tags: [],
+        ignore_tags: ["Ignore", "Start Only", "End Only"],
+      })
+    );
+  };
+
+  const handleNextPrompt = () => {
+    sendMessage(
+      JSON.stringify({
+        action: "upcomingGameState",
+      })
+    );
+    sendMessage(
+      JSON.stringify({
+        action: "sendPrompt",
+        gameState: gameStateRef.current,
+        include_tags: [],
+        ignore_tags: ["Ignore", "Start Only", "End Only"],
+      })
+    );
+  };
+
+  const handleIgnorePrompt = () => {
+    sendMessage(
+      JSON.stringify({
+        action: "upcomingGameState",
+      })
+    );
+    setIgnore(true);
+    const game = { ...gameStateRef.current };
+    game.nextPrompt = null;
+    sendMessage(
+      JSON.stringify({
+        action: "sendPrompt",
+        gameState: game,
+        include_tags: [],
+        ignore_tags: ["Ignore", "Start Only", "End Only"],
+      })
+    );
+  };
 
   const { ws, sendMessage } = useWebSocket(
     process.env.REACT_APP_WEBSOCKET_API,
     handleWebSocketMessage
   );
-
-  useEffect(() => {
-    if (gameState) {
-      const isPromptMissing = gameState.performers.some(
-        (performer) => performer.prompt === "" || performer.prompt === null
-      );
-      if (isPromptMissing) {
-        sendMessage(
-          JSON.stringify({
-            action: "sendPrompt",
-            gameState: gameState,
-            include_tags: [],
-            ignore_tags: ["Ignore"],
-          })
-        );
-      }
-    }
-  }, [gameState]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -121,41 +163,55 @@ const PerformPage = () => {
           {registered && gameState && (
             <>
               <Row>
-                <Col>
-                  {/* Harmonic Prompt */}
-                  <PromptCard
-                    className="glass"
-                    promptTitle="Harmonic Prompt"
-                    sendMessage={sendMessage}
-                    prompt={prompt}
-                    gameState={gameState}
-                  />
-                </Col>
-                <Col>
-                  {/* Current Prompt */}
-                  <PromptCard
-                    className="glass"
-                    promptTitle="Current Prompt"
-                    sendMessage={sendMessage}
-                    prompt={prompt}
-                    gameState={gameState}
-                  />
-                </Col>
-                <Col>
-                  <PromptCard
-                    className="glass"
-                    promptTitle="On Deck"
-                    isLoading={isLoading}
-                    sendMessage={sendMessage}
-                    prompt={gameState.nextPrompt}
-                    gameState={gameState}
-                  />
-                </Col>
+                {gameState.harmonyPrompt && (
+                  <Col>
+                    <PromptCard
+                      className="glass"
+                      promptTitle="Harmony Prompt"
+                      sendMessage={sendMessage}
+                      prompt={gameState.harmonyPrompt}
+                      gameState={gameState}
+                      handleNextPrompt={handleNextPrompt}
+                      disableButtons={disableButtons}
+                      handleIgnorePrompt={handleIgnorePrompt}
+                    />
+                  </Col>
+                )}
 
-                {/* On Deck Prompt */}
+                {prompt && (
+                  <Col>
+                    {/* Current Prompt */}
+                    <PromptCard
+                      className="glass"
+                      promptTitle="Current Prompt"
+                      sendMessage={sendMessage}
+                      prompt={prompt}
+                      gameState={gameState}
+                      handleNextPrompt={handleNextPrompt}
+                      disableButtons={disableButtons}
+                      handleIgnorePrompt={handleIgnorePrompt}
+                    />
+                  </Col>
+                )}
+                {gameState.nextPrompt && (
+                  <Col>
+                    <PromptCard
+                      className="glass"
+                      promptTitle="On Deck"
+                      isLoading={isLoading}
+                      sendMessage={sendMessage}
+                      prompt={gameState.nextPrompt}
+                      gameState={gameState}
+                      handleNextPrompt={handleNextPrompt}
+                      disableButtons={disableButtons}
+                      handleIgnorePrompt={handleIgnorePrompt}
+                    />
+                  </Col>
+                )}
               </Row>
             </>
           )}
+          <hr></hr>
 
           {!gameState && !registered && (
             <>
@@ -200,7 +256,7 @@ const PerformPage = () => {
               </Button>
             </>
           )}
-          {registered && (
+          {registered && gameState && (
             <Button
               type="submit"
               className="m-2"

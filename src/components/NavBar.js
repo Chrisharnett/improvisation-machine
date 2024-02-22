@@ -3,15 +3,16 @@ import Navbar from "react-bootstrap/Navbar";
 import Container from "react-bootstrap/Container";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
-import getCognitoUrl from "../auth/getCognitoURL";
 import axios from "axios";
 import { useToken } from "../auth/useToken";
+import getCognitoURL from "../auth/getCognitoURL";
 
 const Navigation = ({ loggedIn, setLoggedIn }) => {
   const [token, saveToken, removeToken] = useToken();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState(null);
+  const [LogInUrl, setLogInUrl] = useState(getCognitoURL());
 
   useEffect(() => {
     if (token) {
@@ -30,8 +31,6 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
           redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK,
         })
       );
-
-      console.log(response);
       const newToken = response.data;
 
       saveToken(newToken);
@@ -58,8 +57,7 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
   };
 
   const logInHandler = () => {
-    const url = getCognitoUrl();
-    window.location.href = url;
+    window.location.href = LogInUrl;
   };
 
   return (

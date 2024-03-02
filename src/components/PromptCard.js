@@ -45,7 +45,6 @@ const PromptCard = ({
 
   return (
     <>
-      {/* <Container className="d-flex flex-column align-items-center"> */}
       <Card
         className="m-2 p-2"
         style={{
@@ -59,32 +58,10 @@ const PromptCard = ({
       >
         {prompt && (
           <>
-            <Card.Title className="p-2">{promptTitle}</Card.Title>
-            <Card.Body className="fs-1">{prompt.Prompt}</Card.Body>
+            <Card.Title className="p-2 fs-4">{promptTitle}</Card.Title>
+            <Card.Body className="fs-4">{prompt}</Card.Body>
             <Card.Footer>
               <Row>
-                {/* {promptTitle === "Harmony Prompt" && (
-                  <Button
-                    type="submit"
-                    className="mx-2"
-                    onClick={handleNextHarmonyPrompt}
-                    disabled={!prompt}
-                    variant="success"
-                  >
-                    Next
-                  </Button>
-                )}
-                {promptTitle === "Current Prompt" && (
-                  <Button
-                    type="submit"
-                    className="mx-2"
-                    onClick={handleNextPrompt}
-                    disabled={!prompt}
-                    variant="success"
-                  >
-                    Next
-                  </Button>
-                )} */}
                 {promptTitle === "On Deck" && (
                   <>
                     <Row>

@@ -6,13 +6,16 @@ import { useNavigate, useLocation } from "react-router";
 import axios from "axios";
 import { useToken } from "../auth/useToken";
 import getCognitoURL from "../auth/getCognitoURL";
+import { JoinExistingPerformanceModal } from "../modals/JoinExistingPerformanceModal";
 
-const Navigation = ({ loggedIn, setLoggedIn }) => {
+const Navigation = ({ loggedIn, setLoggedIn, userData, setUserData }) => {
   const [token, saveToken, removeToken] = useToken();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState(null);
   const [LogInUrl, setLogInUrl] = useState(getCognitoURL());
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [screenName, setScreenName] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -60,6 +63,10 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
     window.location.href = LogInUrl;
   };
 
+  const handleJoinClick = () => {
+    setShowJoinModal(true);
+  };
+
   return (
     <>
       <Navbar
@@ -73,16 +80,13 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
+              <Nav.Link onClick={handleJoinClick}>Join</Nav.Link>
               {loggedIn && (
                 <>
-                  <Nav.Link href="/performPage">Perform</Nav.Link>
+                  <Nav.Link href="/joinOrCreatePerformance">Perform</Nav.Link>
                   <Nav.Link href="/createPrompts">Create Prompts</Nav.Link>
                 </>
               )}
-              {/* {!loggedIn && (
-                // <Nav.Link href="/joinPerformance">Join Performance</Nav.Link>
-                <Nav.Link href="/performerPage">Join Performance</Nav.Link>
-              )} */}
             </Nav>
 
             {loggedIn && (
@@ -102,6 +106,12 @@ const Navigation = ({ loggedIn, setLoggedIn }) => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
+      <JoinExistingPerformanceModal
+        show={showJoinModal}
+        setShow={setShowJoinModal}
+        screenName={screenName}
+        setScreenName={setScreenName}
+      />
     </>
   );
 };

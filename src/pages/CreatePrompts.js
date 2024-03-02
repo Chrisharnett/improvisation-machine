@@ -159,7 +159,6 @@ const CreatePrompts = () => {
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 style={{ maxWidth: "50vh", marginRight: "5vh" }}
-                // className="mt-3"
               />
               <Button variant="success" onClick={handleAddTag}>
                 Add New Tag

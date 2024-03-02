@@ -8,7 +8,7 @@ const HomePage = ({ loggedIn, setLoggedIn }) => {
 
   useEffect(() => {
     if (loggedIn) {
-      setEntryLink("/performPage");
+      setEntryLink("/JoinOrCreatePerformance");
     } else {
       setEntryLink(getCognitoURL());
     }

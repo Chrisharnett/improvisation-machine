@@ -1,26 +1,31 @@
 import PromptCard from "../components/PromptCard";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Button, Container, Form, Row, Col } from "react-bootstrap";
-import { v4 as uuidv4 } from "uuid";
+import { Button, Container, Row, Col } from "react-bootstrap";
 import useWebSocket from "../hooks/useWebSocket.js";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const PerformPage = () => {
+  const location = useLocation();
+
+  const [gameState, setGameState] = useState(location.state?.gameState);
   const [performance_id, setPerformance_id] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  // const [message, setMessage] = useState("Click Begin Song to start");
   const [songEnd, setSongEnd] = useState(false);
-  const [screenName, setScreenName] = useState(null);
-  const [gameState, setGameState] = useState(null);
+  const [screenName, setScreenName] = useState(location.state?.screenName);
   const [registered, setRegistered] = useState(false);
   const [prompt, setPrompt] = useState(null);
   const [nextPrompt, setNextPrompt] = useState(null);
   const [disableButtons, setDisableButtons] = useState(false);
   const [ignore, setIgnore] = useState(false);
+  const [performers, setPerformers] = useState([]);
 
   const screenNameRef = useRef(screenName);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     screenNameRef.current = screenName;
+    userPrompt([{ screenName: screenNameRef.current }]);
   }, [screenName]);
 
   const gameStateRef = useRef(gameState);
@@ -28,6 +33,14 @@ const PerformPage = () => {
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  const userPrompt = (performers) => {
+    for (let i in performers) {
+      if (performers[i].screenName === screenNameRef.current) {
+        setPrompt(gameState.performers[i].prompt);
+      }
+    }
+  };
 
   const handleWebSocketMessage = useCallback((event) => {
     try {
@@ -41,11 +54,8 @@ const PerformPage = () => {
           setGameState(response.gameState);
           setPerformance_id(response.gameState.performance_id);
           const { performers } = response.gameState;
-          for (let i in performers) {
-            if (performers[i].screenName === screenNameRef.current) {
-              setPrompt(performers[i].prompt);
-            }
-          }
+          setPerformers(performers);
+          userPrompt(performers);
           if (!prompt) {
             setPrompt(performers[0].prompt);
           }
@@ -69,16 +79,16 @@ const PerformPage = () => {
   //   return () => clearInterval(nextPromptTimer);
   // }, []);
 
-  const getNewPrompt = () => {
-    sendMessage(
-      JSON.stringify({
-        action: "sendPrompt",
-        gameState: gameStateRef.current,
-        include_tags: [],
-        ignore_tags: ["Ignore", "Start Only", "End Only"],
-      })
-    );
-  };
+  // const getNewPrompt = () => {
+  //   sendMessage(
+  //     JSON.stringify({
+  //       action: "sendPrompt",
+  //       gameState: gameStateRef.current,
+  //       include_tags: [],
+  //       ignore_tags: ["Ignore", "Start Only", "End Only"],
+  //     })
+  //   );
+  // };
 
   const handleNextPrompt = () => {
     sendMessage(
@@ -120,24 +130,11 @@ const PerformPage = () => {
     handleWebSocketMessage
   );
 
-  useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-  }, []);
-
-  const handleStartPerformance = () => {
-    const id = uuidv4();
-    setPerformance_id(id);
-    sendMessage(
-      JSON.stringify({
-        action: "startPerformance",
-        performance_id: id,
-        screenName: screenName,
-      })
-    );
-    setRegistered(true);
-  };
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setIsLoading(false);
+  //   }, 2000);
+  // }, []);
 
   const handleJoinPerformance = () => {
     setRegistered(true);
@@ -154,13 +151,19 @@ const PerformPage = () => {
 
   const handleNextPerformance = () => {};
 
-  return (
-    <>
-      <div style={{ height: "6vh" }}></div>
-      <Container className="fullVHeight d-flex justify-content-center align-items-center">
-        <Container className="midLayer glass">
-          <h1> Performance</h1>
-          {registered && gameState && (
+  const handleJoinExistingPerformance = () => {};
+
+  if (!gameState) {
+    navigate("/joinOrCreatePerformance");
+  } else {
+    return (
+      <>
+        <div style={{ height: "6vh" }}></div>
+        <Container className="fullVHeight d-flex justify-content-center align-items-center">
+          <Container className="midLayer glass">
+            <h1> Performance</h1>
+            <h2> {screenName}</h2>
+            <p> Performance Code: {gameState.performance_id}</p>
             <>
               <Row>
                 {gameState.harmonyPrompt && (
@@ -210,53 +213,8 @@ const PerformPage = () => {
                 )}
               </Row>
             </>
-          )}
-          <hr></hr>
+            <hr></hr>
 
-          {!gameState && !registered && (
-            <>
-              <Form>
-                <Form.Group>
-                  <Form.Label>Name</Form.Label>
-                  <Form.Control
-                    className="mb-3"
-                    type="text"
-                    placeholder="What should I call you?"
-                    onChange={(e) => setScreenName(e.target.value)}
-                    style={{ width: "30vw" }}
-                  />
-                </Form.Group>
-              </Form>
-              <Button onClick={handleStartPerformance} disabled={!screenName}>
-                Start Performance
-              </Button>
-            </>
-          )}
-
-          {gameState && !registered && (
-            <>
-              <Form>
-                <Form.Group>
-                  <Form.Label>Name</Form.Label>
-                  <Form.Control
-                    className="mb-3"
-                    type="text"
-                    placeholder="What should I call you?"
-                    onChange={(e) => setScreenName(e.target.value)}
-                    style={{ width: "30vw" }}
-                  />
-                </Form.Group>
-              </Form>
-              <Button
-                variat="success"
-                onClick={handleJoinPerformance}
-                disabled={!screenName}
-              >
-                Join Performance
-              </Button>
-            </>
-          )}
-          {registered && gameState && (
             <Button
               type="submit"
               className="m-2"
@@ -265,32 +223,33 @@ const PerformPage = () => {
             >
               End Song
             </Button>
-          )}
-          {registered && !performance_id && (
-            <Button
-              className="m-2"
-              onClick={handleNextPerformance}
-              disabled={performance_id}
-            >
-              Next Song
-            </Button>
-          )}
-          <Row className="mt-3">
-            {gameState && (
-              <>
-                <h2>Registered Performers</h2>
-                {gameState.performers.map((performer, index) => (
-                  <Col key={performer.screenName + index} sm="auto">
-                    <p key={index}>{performer.screenName} </p>
-                  </Col>
-                ))}
-              </>
+
+            {registered && !performance_id && (
+              <Button
+                className="m-2"
+                onClick={handleNextPerformance}
+                disabled={performance_id}
+              >
+                Next Song
+              </Button>
             )}
-          </Row>
+            <Row className="mt-3">
+              {gameState && (
+                <>
+                  <h2>Performers</h2>
+                  {gameState.performers.map((performer, index) => (
+                    <Col key={performer.screenName + index} sm="auto">
+                      <p key={index}>{performer.screenName} </p>
+                    </Col>
+                  ))}
+                </>
+              )}
+            </Row>
+          </Container>
         </Container>
-      </Container>
-    </>
-  );
+      </>
+    );
+  }
 };
 
 export default PerformPage;

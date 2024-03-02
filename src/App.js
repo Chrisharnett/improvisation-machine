@@ -4,8 +4,8 @@ import Navigation from "./components/NavBar.js";
 import HomePage from "./pages/HomePage.js";
 import PerformPage from "./pages/PerformPage.js";
 import CreatePrompts from "./pages/CreatePrompts.js";
-import JoinPerformance from "./pages/JoinPerformance.js";
-import PerformerPage from "./pages/PerformerPage.js";
+// import JoinPerformance from "./pages/JoinPerformance.js";
+import JoinOrCreatePerformance from "./pages/JoinOrCreatePerformance.js";
 import { PrivateRoute } from "./auth/privateRoute.js";
 import { useState, useEffect } from "react";
 import { Backgrounds } from "./util/Backgrounds.js";
@@ -42,10 +42,13 @@ function App() {
             path="/"
             element={<HomePage loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
           />
-          <Route path="/joinPerformance" element={<JoinPerformance />} />
-          <Route path="/performerPage" element={<PerformerPage />} />
+          {/* <Route path="/joinPerformance" element={<JoinPerformance />} /> */}
+          <Route path="/performPage" element={<PerformPage />} />
           <Route element={<PrivateRoute />}>
-            <Route path="/performPage" element={<PerformPage />} />
+            <Route
+              path="/joinOrCreatePerformance"
+              element={<JoinOrCreatePerformance userData={userData} />}
+            />
             <Route path="/createPrompts" element={<CreatePrompts />} />
           </Route>
         </Routes>

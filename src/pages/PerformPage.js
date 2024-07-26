@@ -1,96 +1,109 @@
 import PromptCard from "../components/PromptCard";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Button, Container, Row, Col } from "react-bootstrap";
-import useWebSocket from "../hooks/useWebSocket.js";
+import { useWebSocket } from "../util/WebSocketContext";
 import { useLocation, useNavigate } from "react-router-dom";
+import { JoinExistingPerformanceModal } from "../modals/JoinExistingPerformanceModal";
+import { CreatePerformanceModal } from "../modals/CreatePerformanceModal";
+import { TopSpacer } from "../util/TopSpacer";
+import { PerformanceCodeRejectionModal } from "../modals/PerformanceCodeRejectionModal.js";
+import useUser from "../auth/useUser";
+import { generatePerformanceToken } from "../auth/unauthenticatedToken.js";
 
-const PerformPage = () => {
+const PerformPage = ({
+  screenName,
+  setScreenName,
+  performanceId,
+  setPerformanceId,
+  loggedIn,
+  token,
+}) => {
   const location = useLocation();
+  const user = useUser();
+  const navigate = useNavigate();
 
-  const [gameState, setGameState] = useState(location.state?.gameState);
-  const [performance_id, setPerformance_id] = useState(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [
+    showPerformanceCodeRejectionModal,
+    setShowPerformanceCodeRejectionModal,
+  ] = useState(false);
+  const [gameState, setGameState] = useState(location.state?.gameState || null);
   const [isLoading, setIsLoading] = useState(true);
-  const [songEnd, setSongEnd] = useState(false);
-  const [screenName, setScreenName] = useState(location.state?.screenName);
-  const [registered, setRegistered] = useState(false);
   const [prompt, setPrompt] = useState(null);
-  const [nextPrompt, setNextPrompt] = useState(null);
   const [disableButtons, setDisableButtons] = useState(false);
-  const [ignore, setIgnore] = useState(false);
-  const [performers, setPerformers] = useState([]);
+  const [, setToken] = useState(null);
 
   const screenNameRef = useRef(screenName);
+  const gameStateRef = useRef(gameState);
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    console.log("PerformPage mounted or updated");
+    return () => {
+      console.log("PerformPage unmounted");
+    };
+  }, []);
 
   useEffect(() => {
     screenNameRef.current = screenName;
-    userPrompt([{ screenName: screenNameRef.current }]);
-  }, [screenName]);
-
-  const gameStateRef = useRef(gameState);
+    if (gameState) {
+      userPrompt(gameState.performers);
+    }
+  }, [screenName, gameState]);
 
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  const userPrompt = (performers) => {
+  const userPrompt = useCallback((performers) => {
     for (let i in performers) {
       if (performers[i].screenName === screenNameRef.current) {
-        setPrompt(gameState.performers[i].prompt);
+        setPrompt(performers[i].prompt);
+        break;
       }
-    }
-  };
-
-  const handleWebSocketMessage = useCallback((event) => {
-    try {
-      if (event.data !== "") {
-        const response = JSON.parse(event.data);
-        if (response.action === "incomingGameChange") {
-          setDisableButtons(true);
-          return;
-        }
-        if (response.gameState) {
-          setGameState(response.gameState);
-          setPerformance_id(response.gameState.performance_id);
-          const { performers } = response.gameState;
-          setPerformers(performers);
-          userPrompt(performers);
-          if (!prompt) {
-            setPrompt(performers[0].prompt);
-          }
-          setDisableButtons(false);
-        } else {
-          console.log("Unknown action: ", response.action);
-        }
-      }
-    } catch (e) {
-      console.log("Error: " + e);
     }
   }, []);
 
-  // useEffect(() => {
-  //   const nextPromptTimer = setInterval(() => {
-  //     if (gameStateRef.current) {
-  //       gameStateRef.current.nextPrompt = null;
-  //       getNewPrompt();
-  //     }
-  //   }, 20000);
-  //   return () => clearInterval(nextPromptTimer);
-  // }, []);
+  const { sendMessage, onMessage, reconnect, close, isConnected } =
+    useWebSocket();
 
-  // const getNewPrompt = () => {
-  //   sendMessage(
-  //     JSON.stringify({
-  //       action: "sendPrompt",
-  //       gameState: gameStateRef.current,
-  //       include_tags: [],
-  //       ignore_tags: ["Ignore", "Start Only", "End Only"],
-  //     })
-  //   );
-  // };
+  const handleWebSocketMessage = useCallback(
+    (event) => {
+      try {
+        console.log("Received WebSocket message:", event.data);
+        if (event.data) {
+          const response = JSON.parse(event.data);
+          if (response.action === "incomingGameChange") {
+            setDisableButtons(true);
+            return;
+          }
+          if (response.gameState) {
+            setGameState(response.gameState);
+            setPerformanceId(response.gameState.performance_id);
+            const { performers } = response.gameState;
+            userPrompt(performers);
+            if (!prompt) {
+              setPrompt(performers[0].prompt);
+            }
+            setDisableButtons(false);
+          } else {
+            console.log("Unknown action: ", response.action);
+          }
+        }
+      } catch (e) {
+        console.log("Error: " + e);
+      }
+    },
+    [userPrompt, setPerformanceId, prompt]
+  );
 
-  const handleNextPrompt = () => {
+  useEffect(() => {
+    if (onMessage) {
+      onMessage(handleWebSocketMessage);
+    }
+  }, [onMessage, handleWebSocketMessage]);
+
+  const handleNextPrompt = useCallback(() => {
     sendMessage(
       JSON.stringify({
         action: "upcomingGameState",
@@ -104,17 +117,15 @@ const PerformPage = () => {
         ignore_tags: ["Ignore", "Start Only", "End Only"],
       })
     );
-  };
+  }, [sendMessage]);
 
-  const handleIgnorePrompt = () => {
+  const handleIgnorePrompt = useCallback(() => {
     sendMessage(
       JSON.stringify({
         action: "upcomingGameState",
       })
     );
-    setIgnore(true);
-    const game = { ...gameStateRef.current };
-    game.nextPrompt = null;
+    const game = { ...gameStateRef.current, nextPrompt: null };
     sendMessage(
       JSON.stringify({
         action: "sendPrompt",
@@ -123,133 +134,156 @@ const PerformPage = () => {
         ignore_tags: ["Ignore", "Start Only", "End Only"],
       })
     );
-  };
+  }, [sendMessage]);
 
-  const { ws, sendMessage } = useWebSocket(
-    process.env.REACT_APP_WEBSOCKET_API,
-    handleWebSocketMessage
-  );
+  useEffect(() => {
+    if (!gameState && !loggedIn) {
+      setShowJoinModal(true);
+      setShowCreateModal(false);
+      setToken(generatePerformanceToken());
+    } else if (!gameState && loggedIn) {
+      setShowCreateModal(true);
+      setShowJoinModal(false);
+    }
+  }, [gameState, loggedIn]);
 
+  // Reconnect logic
+  useEffect(() => {
+    const handleReconnect = () => {
+      console.log("Reconnecting WebSocket...");
+      reconnect();
+    };
+
+    const handleUnload = () => {
+      console.log("Closing WebSocket...");
+      close();
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    window.addEventListener("online", handleReconnect);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+      window.removeEventListener("online", handleReconnect);
+    };
+  }, [reconnect, close]);
+
+  // Keep-alive messages
   // useEffect(() => {
-  //   setTimeout(() => {
-  //     setIsLoading(false);
-  //   }, 2000);
-  // }, []);
+  //   if (isConnected) {
+  //     const interval = setInterval(() => {
+  //       sendMessage(JSON.stringify({ action: "keepAlive" }));
+  //     }, 30000);
 
-  const handleJoinPerformance = () => {
-    setRegistered(true);
-    sendMessage(
-      JSON.stringify({
-        action: "joinPerformance",
-        performance_id: performance_id,
-        newPerformer: { screenName, prompt },
-      })
-    );
-  };
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [sendMessage, isConnected]);
 
-  const handleEndSong = () => {};
+  return (
+    <>
+      <TopSpacer />
+      <Container className="fullVHeight d-flex justify-content-center align-items-center">
+        <Container className="midLayer glass">
+          <h1> Performance</h1>
+          <h2> {screenName}</h2>
+          <p> Performance Code: {gameState?.performance_id}</p>
+          <>
+            <Row>
+              {gameState?.harmonyPrompt && (
+                <Col>
+                  <PromptCard
+                    className="glass"
+                    promptTitle="Harmony Prompt"
+                    sendMessage={sendMessage}
+                    prompt={gameState.harmonyPrompt}
+                    gameState={gameState}
+                    handleNextPrompt={handleNextPrompt}
+                    disableButtons={disableButtons}
+                    handleIgnorePrompt={handleIgnorePrompt}
+                  />
+                </Col>
+              )}
 
-  const handleNextPerformance = () => {};
-
-  const handleJoinExistingPerformance = () => {};
-
-  if (!gameState) {
-    navigate("/joinOrCreatePerformance");
-  } else {
-    return (
-      <>
-        <div style={{ height: "6vh" }}></div>
-        <Container className="fullVHeight d-flex justify-content-center align-items-center">
-          <Container className="midLayer glass">
-            <h1> Performance</h1>
-            <h2> {screenName}</h2>
-            <p> Performance Code: {gameState.performance_id}</p>
-            <>
-              <Row>
-                {gameState.harmonyPrompt && (
-                  <Col>
-                    <PromptCard
-                      className="glass"
-                      promptTitle="Harmony Prompt"
-                      sendMessage={sendMessage}
-                      prompt={gameState.harmonyPrompt}
-                      gameState={gameState}
-                      handleNextPrompt={handleNextPrompt}
-                      disableButtons={disableButtons}
-                      handleIgnorePrompt={handleIgnorePrompt}
-                    />
-                  </Col>
-                )}
-
-                {prompt && (
-                  <Col>
-                    {/* Current Prompt */}
-                    <PromptCard
-                      className="glass"
-                      promptTitle="Current Prompt"
-                      sendMessage={sendMessage}
-                      prompt={prompt}
-                      gameState={gameState}
-                      handleNextPrompt={handleNextPrompt}
-                      disableButtons={disableButtons}
-                      handleIgnorePrompt={handleIgnorePrompt}
-                    />
-                  </Col>
-                )}
-                {gameState.nextPrompt && (
-                  <Col>
-                    <PromptCard
-                      className="glass"
-                      promptTitle="On Deck"
-                      isLoading={isLoading}
-                      sendMessage={sendMessage}
-                      prompt={gameState.nextPrompt}
-                      gameState={gameState}
-                      handleNextPrompt={handleNextPrompt}
-                      disableButtons={disableButtons}
-                      handleIgnorePrompt={handleIgnorePrompt}
-                    />
-                  </Col>
-                )}
-              </Row>
-            </>
-            <hr></hr>
-
-            <Button
-              type="submit"
-              className="m-2"
-              onClick={handleEndSong}
-              disabled={!prompt}
-            >
-              End Song
-            </Button>
-
-            {registered && !performance_id && (
-              <Button
-                className="m-2"
-                onClick={handleNextPerformance}
-                disabled={performance_id}
-              >
-                Next Song
-              </Button>
-            )}
-            <Row className="mt-3">
-              {gameState && (
-                <>
-                  <h2>Performers</h2>
-                  {gameState.performers.map((performer, index) => (
-                    <Col key={performer.screenName + index} sm="auto">
-                      <p key={index}>{performer.screenName} </p>
-                    </Col>
-                  ))}
-                </>
+              {prompt && (
+                <Col>
+                  <PromptCard
+                    className="glass"
+                    promptTitle="Current Prompt"
+                    sendMessage={sendMessage}
+                    prompt={prompt}
+                    gameState={gameState}
+                    handleNextPrompt={handleNextPrompt}
+                    disableButtons={disableButtons}
+                    handleIgnorePrompt={handleIgnorePrompt}
+                  />
+                </Col>
+              )}
+              {gameState?.nextPrompt && (
+                <Col>
+                  <PromptCard
+                    className="glass"
+                    promptTitle="On Deck"
+                    isLoading={isLoading}
+                    sendMessage={sendMessage}
+                    prompt={gameState.nextPrompt}
+                    gameState={gameState}
+                    handleNextPrompt={handleNextPrompt}
+                    disableButtons={disableButtons}
+                    handleIgnorePrompt={handleIgnorePrompt}
+                  />
+                </Col>
               )}
             </Row>
-          </Container>
+          </>
+          <hr></hr>
+
+          <Button
+            type="submit"
+            className="m-2"
+            onClick={handleNextPrompt}
+            disabled={!prompt}
+          >
+            Next Prompt
+          </Button>
+
+          <Row className="mt-3">
+            {gameState && (
+              <>
+                <h2>Performers</h2>
+                {gameState.performers.map((performer, index) => (
+                  <Col key={performer.screenName + index} sm="auto">
+                    <p key={index}>{performer.screenName}</p>
+                  </Col>
+                ))}
+              </>
+            )}
+          </Row>
         </Container>
-      </>
-    );
-  }
+      </Container>
+      <JoinExistingPerformanceModal
+        show={showJoinModal}
+        setShow={setShowJoinModal}
+        screenName={screenName}
+        setScreenName={setScreenName}
+        performanceId={performanceId}
+        setPerformanceId={setPerformanceId}
+        sendMessage={sendMessage}
+      />
+      <CreatePerformanceModal
+        show={showCreateModal}
+        setShow={setShowCreateModal}
+        screenName={screenName}
+        setScreenName={setScreenName}
+        user={user}
+        setShowJoinModal={setShowJoinModal}
+        sendMessage={sendMessage}
+      />
+      <PerformanceCodeRejectionModal
+        show={showPerformanceCodeRejectionModal}
+        setShow={setShowPerformanceCodeRejectionModal}
+      />
+    </>
+  );
 };
 
 export default PerformPage;

@@ -1,15 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import useWebSocket from "../hooks/useWebSocket.js";
+// import useWebSocket from "../hooks/useWebSocket.js";
+import { PerformanceCodeRejectionModal } from "./PerformanceCodeRejectionModal.js";
 
 export const JoinExistingPerformanceModal = ({
   show,
   setShow,
   screenName,
   setScreenName,
+  performanceId,
+  setPerformanceId,
+  handleWebSocketMessage,
+  sendMessage,
 }) => {
-  const [performanceCode, setPerformanceCode] = useState("");
   const [
     showPerformanceCodeRejectionModal,
     setShowPerformanceCodeRejectionModal,
@@ -19,41 +23,16 @@ export const JoinExistingPerformanceModal = ({
 
   const navigate = useNavigate();
 
-  const handleWebSocketMessage = useCallback((event) => {
-    try {
-      if (event.data !== "") {
-        const response = JSON.parse(event.data);
-        if (response.action === "updateGameState") {
-          navigate("/performPage", {
-            state: { gameState: response.gameState, screenName: screenName },
-          });
-          handleClose();
-        } else if (response.action === "Invalid performance code.") {
-          setShowPerformanceCodeRejectionModal(true);
-          navigate("/");
-        } else {
-          console.log("Unknown action: ", response.action);
-        }
-      }
-    } catch (e) {
-      console.log("Error: " + e);
-    }
-  }, []);
-
-  const { ws, sendMessage } = useWebSocket(
-    process.env.REACT_APP_WEBSOCKET_API,
-    handleWebSocketMessage
-  );
-
   const handleJoinExistingPerformance = (e) => {
     e.preventDefault();
     sendMessage(
       JSON.stringify({
         action: "joinExistingPerformanceRoute",
-        performance_id: performanceCode,
+        performance_id: performanceId,
         screenName: screenName,
       })
     );
+    handleClose();
   };
   return (
     <>
@@ -73,13 +52,13 @@ export const JoinExistingPerformanceModal = ({
               value={screenName}
               onChange={(e) => setScreenName(e.target.value)}
             />
-            <Form.Label htmlFor="joinCode">Performance Code</Form.Label>
+            <Form.Label htmlFor="performanceId">Performance Code</Form.Label>
             <Form.Control
               type="text"
-              id="screenName"
+              id="performanceId"
               placeholder="Performance Code"
-              value={performanceCode}
-              onChange={(e) => setPerformanceCode(e.target.value)}
+              value={performanceId || ""}
+              onChange={(e) => setPerformanceId(e.target.value)}
             />
           </Form>
         </Modal.Body>
@@ -89,6 +68,10 @@ export const JoinExistingPerformanceModal = ({
           </Button>
         </Modal.Footer>
       </Modal>
+      <PerformanceCodeRejectionModal
+        show={showPerformanceCodeRejectionModal}
+        setShow={setShowPerformanceCodeRejectionModal}
+      />
     </>
   );
 };

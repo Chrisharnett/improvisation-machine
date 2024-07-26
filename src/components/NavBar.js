@@ -1,21 +1,22 @@
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Container from "react-bootstrap/Container";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import axios from "axios";
-import { useToken } from "../auth/useToken";
-import getCognitoURL from "../auth/getCognitoURL";
-import { JoinExistingPerformanceModal } from "../modals/JoinExistingPerformanceModal";
+import { Link } from "react-router-dom";
 
-const Navigation = ({ loggedIn, setLoggedIn, userData, setUserData }) => {
-  const [token, saveToken, removeToken] = useToken();
+const Navigation = ({
+  loggedIn,
+  setLoggedIn,
+  token,
+  saveToken,
+  removeToken,
+  setError,
+  LogInUrl,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [error, setError] = useState(null);
-  const [LogInUrl, setLogInUrl] = useState(getCognitoURL());
-  const [showJoinModal, setShowJoinModal] = useState(false);
-  const [screenName, setScreenName] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -51,7 +52,7 @@ const Navigation = ({ loggedIn, setLoggedIn, userData, setUserData }) => {
     if (code) {
       codeForToken(code);
     }
-  }, []);
+  }, [location.search]);
 
   const logOutHandler = () => {
     removeToken();
@@ -63,10 +64,6 @@ const Navigation = ({ loggedIn, setLoggedIn, userData, setUserData }) => {
     window.location.href = LogInUrl;
   };
 
-  const handleJoinClick = () => {
-    setShowJoinModal(true);
-  };
-
   return (
     <>
       <Navbar
@@ -76,29 +73,39 @@ const Navigation = ({ loggedIn, setLoggedIn, userData, setUserData }) => {
         id="top"
       >
         <Container>
-          <Navbar.Brand href="/">Improvisation Game</Navbar.Brand>
+          {loggedIn ? (
+            <>
+              <Navbar.Brand href="/performPage"> Improvise </Navbar.Brand>
+            </>
+          ) : (
+            <>
+              <Navbar.Brand href="/"> Improvise </Navbar.Brand>
+            </>
+          )}
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Nav.Link onClick={handleJoinClick}>Join</Nav.Link>
+              <Nav.Link as={Link} to="/about">
+                About this project
+              </Nav.Link>
               {loggedIn && (
                 <>
-                  <Nav.Link href="/joinOrCreatePerformance">Perform</Nav.Link>
-                  <Nav.Link href="/createPrompts">Create Prompts</Nav.Link>
+                  <Nav.Link as={Link} to="/createPrompts">
+                    Manage Prompts
+                  </Nav.Link>
                 </>
               )}
             </Nav>
 
-            {loggedIn && (
+            {loggedIn ? (
               <Nav>
-                <Nav.Link className="" href="#" onClick={logOutHandler}>
+                <Nav.Link href="#" onClick={logOutHandler}>
                   <h4>Logout</h4>
                 </Nav.Link>
               </Nav>
-            )}
-            {!loggedIn && (
+            ) : (
               <Nav>
-                <Nav.Link className="" href="#login" onClick={logInHandler}>
+                <Nav.Link href="#login" onClick={logInHandler}>
                   <h4>Login</h4>
                 </Nav.Link>
               </Nav>
@@ -106,12 +113,6 @@ const Navigation = ({ loggedIn, setLoggedIn, userData, setUserData }) => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <JoinExistingPerformanceModal
-        show={showJoinModal}
-        setShow={setShowJoinModal}
-        screenName={screenName}
-        setScreenName={setScreenName}
-      />
     </>
   );
 };

@@ -1,22 +1,34 @@
 import { Modal, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+import useUser from "../auth/useUser";
 
 export const CreatePerformanceModal = ({
   show,
   setShow,
   screenName,
   setScreenName,
-  user,
+  // user,
   handleWebSocketMessage,
   setShowJoinModal,
   sendMessage,
 }) => {
-  const handleClose = () => setShow(false);
-  const handleOpen = () => setShow(true);
+  const handleClose = useCallback(() => {
+    setShow(false);
+    console.log("Modal closed");
+  }, [setShow]);
+
+  const handleOpen = useCallback(() => {
+    setShow(true);
+    console.log("Modal opened");
+  }, [setShow]);
+
+  const user = useUser();
 
   const navigate = useNavigate();
 
-  const handleCreatePerformance = () => {
+  const handleCreatePerformance = useCallback(() => {
+    console.log("Creating performance with screen name:", screenName);
     sendMessage(
       JSON.stringify({
         action: "createPerformance",
@@ -25,12 +37,21 @@ export const CreatePerformanceModal = ({
       })
     );
     handleClose();
-  };
+  }, [sendMessage, user.sub, screenName, handleClose]);
 
-  const handleJoinPerformance = () => {
+  const handleJoinPerformance = useCallback(() => {
+    console.log("Joining performance");
     setShowJoinModal(true);
     handleClose();
-  };
+  }, [setShowJoinModal, handleClose]);
+
+  const handleScreenNameChange = useCallback(
+    (e) => {
+      // console.log("Screen name changed:", e.target.value);
+      setScreenName(e.target.value);
+    },
+    [setScreenName]
+  );
 
   return (
     <>
@@ -48,7 +69,7 @@ export const CreatePerformanceModal = ({
               id="screenName"
               placeholder="Enter your screen name"
               value={screenName}
-              onChange={(e) => setScreenName(e.target.value)}
+              onChange={handleScreenNameChange}
             />
           </Form>
         </Modal.Body>

@@ -1,13 +1,13 @@
-import PromptCard from "../components/PromptCard";
+import PromptCard from "../components/PromptCard.js";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Button, Container, Row, Col } from "react-bootstrap";
-import { useWebSocket } from "../util/WebSocketContext";
+import { useWebSocket } from "../util/WebSocketContext.js";
 import { useLocation, useNavigate } from "react-router-dom";
-import { JoinExistingPerformanceModal } from "../modals/JoinExistingPerformanceModal";
-import { CreatePerformanceModal } from "../modals/CreatePerformanceModal";
-import { TopSpacer } from "../util/TopSpacer";
+import { JoinExistingPerformanceModal } from "../modals/JoinExistingPerformanceModal.js";
+import { CreatePerformanceModal } from "../modals/CreatePerformanceModal.js";
+import { TopSpacer } from "../util/TopSpacer.js";
 import { PerformanceCodeRejectionModal } from "../modals/PerformanceCodeRejectionModal.js";
-import useUser from "../auth/useUser";
+import useUser from "../auth/useUser.js";
 import { generatePerformanceToken } from "../auth/unauthenticatedToken.js";
 
 const PerformPage = ({
@@ -16,7 +16,6 @@ const PerformPage = ({
   performanceId,
   setPerformanceId,
   loggedIn,
-  token,
 }) => {
   const location = useLocation();
   const user = useUser();
@@ -99,6 +98,7 @@ const PerformPage = ({
 
   useEffect(() => {
     if (onMessage) {
+      console.log("Setting onMessage handler");
       onMessage(handleWebSocketMessage);
     }
   }, [onMessage, handleWebSocketMessage]);
@@ -169,15 +169,15 @@ const PerformPage = ({
   }, [reconnect, close]);
 
   // Keep-alive messages
-  // useEffect(() => {
-  //   if (isConnected) {
-  //     const interval = setInterval(() => {
-  //       sendMessage(JSON.stringify({ action: "keepAlive" }));
-  //     }, 30000);
+  useEffect(() => {
+    if (isConnected) {
+      const interval = setInterval(() => {
+        sendMessage(JSON.stringify({ action: "keepAlive" }));
+      }, 30000);
 
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [sendMessage, isConnected]);
+      return () => clearInterval(interval);
+    }
+  }, [sendMessage, isConnected]);
 
   return (
     <>
@@ -186,7 +186,15 @@ const PerformPage = ({
         <Container className="midLayer glass">
           <h1> Performance</h1>
           <h2> {screenName}</h2>
-          <p> Performance Code: {gameState?.performance_id}</p>
+          {isConnected ? (
+            <>
+              <p>Connected</p>
+              <p> Performance Code: {performanceId}</p>
+            </>
+          ) : (
+            <p>Not Connected</p>
+          )}
+
           <>
             <Row>
               {gameState?.harmonyPrompt && (

@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useCallback,
 } from "react";
 
 const WebSocketContext = createContext(null);
@@ -18,11 +19,11 @@ export const WebSocketProvider = ({
   const [messageHandler, setMessageHandler] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  const connect = () => {
+  const connect = useCallback(() => {
     if (ws.current) {
       ws.current.close();
     }
-    if (token && performanceId) {
+    if (token) {
       const wsUrl = `${url}?token=${encodeURIComponent(
         token
       )}&performance_id=${encodeURIComponent(performanceId)}`;
@@ -33,9 +34,17 @@ export const WebSocketProvider = ({
         setIsConnected(true);
       };
 
-      ws.current.onclose = () => {
-        console.log("WebSocket connection closed.");
+      ws.current.onclose = (event) => {
+        console.log(
+          "WebSocket connection closed. Code:",
+          event.code,
+          "Reason:",
+          event.reason
+        );
         setIsConnected(false);
+        // if (event.code !== 1000) {
+        //   setTimeout(() => connect(), 5000);
+        // }
       };
 
       ws.current.onerror = (error) => {
@@ -45,10 +54,13 @@ export const WebSocketProvider = ({
       ws.current.onmessage = (event) => {
         if (messageHandler) {
           messageHandler(event);
+          console.log("WebSocket message received:", event.data);
+        } else {
+          console.warn("Message received but no handler is set");
         }
       };
     }
-  };
+  }, [url, token, performanceId, messageHandler]);
 
   useEffect(() => {
     connect();
@@ -57,7 +69,7 @@ export const WebSocketProvider = ({
         ws.current.close();
       }
     };
-  }, [url, token, performanceId]);
+  }, [connect]);
 
   const sendMessage = (message) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {

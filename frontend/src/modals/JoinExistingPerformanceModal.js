@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-// import useWebSocket from "../hooks/useWebSocket.js";
+import { v4 as uuidv4 } from "uuid";
 import { PerformanceCodeRejectionModal } from "./PerformanceCodeRejectionModal.js";
 
 export const JoinExistingPerformanceModal = ({
@@ -9,10 +9,14 @@ export const JoinExistingPerformanceModal = ({
   setShow,
   screenName,
   setScreenName,
-  performanceId,
-  setPerformanceId,
-  handleWebSocketMessage,
+  roomName,
+  setRoomName,
   sendMessage,
+  userId,
+  setUserId,
+  instrument,
+  setInstrument,
+  setShowLobbyModal,
 }) => {
   const [
     showPerformanceCodeRejectionModal,
@@ -23,17 +27,30 @@ export const JoinExistingPerformanceModal = ({
 
   const navigate = useNavigate();
 
+  const generateUserId = () => {
+    return uuidv4();
+  };
+
   const handleJoinExistingPerformance = (e) => {
     e.preventDefault();
+    let id = userId;
+    if (!id) {
+      id = generateUserId();
+      setUserId(id);
+    }
     sendMessage(
       JSON.stringify({
-        action: "joinExistingPerformanceRoute",
-        performance_id: performanceId,
+        action: "joinRoom",
+        roomName: roomName,
         screenName: screenName,
+        userId: id,
+        instrument: instrument,
       })
     );
     handleClose();
+    setShowLobbyModal(true);
   };
+
   return (
     <>
       <Modal show={show} onHide={handleClose}>
@@ -57,8 +74,16 @@ export const JoinExistingPerformanceModal = ({
               type="text"
               id="performanceId"
               placeholder="Performance Code"
-              value={performanceId || ""}
-              onChange={(e) => setPerformanceId(e.target.value)}
+              value={roomName || ""}
+              onChange={(e) => setRoomName(e.target.value)}
+            />
+            <Form.Label htmlFor="instrument">Instrument</Form.Label>
+            <Form.Control
+              type="text"
+              id="instrument"
+              placeholder="Instrument"
+              value={instrument || ""}
+              onChange={(e) => setInstrument(e.target.value)}
             />
           </Form>
         </Modal.Body>

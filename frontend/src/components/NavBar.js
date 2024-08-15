@@ -21,8 +21,10 @@ const Navigation = ({
   useEffect(() => {
     if (token) {
       setLoggedIn(true);
+      console.log("loggedIn");
     } else {
       setLoggedIn(false);
+      console.log("not loggedIn");
     }
   }, [token, setLoggedIn]);
 
@@ -32,7 +34,7 @@ const Navigation = ({
         `${process.env.REACT_APP_AUTH_API}`,
         JSON.stringify({
           code: code,
-          redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK,
+          redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK_LOCAL,
         })
       );
       const newToken = response.data;

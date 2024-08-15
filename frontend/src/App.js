@@ -12,34 +12,30 @@ import { useToken } from "./auth/useToken.js";
 import getCognitoURL from "./auth/getCognitoURL.js";
 import About from "./pages/About.js";
 
-// const websocketURL = process.env.REACT_APP_WEBSOCKET_API_DEV;
-const websocketURL = process.env.LOCAL_WEBSOCKET_API;
-// const websocketURL = process.env.REACT_APP_WEBSOCKET_API_PROD;
+const websocketURL = "wss://ws.a5tral8og.com";
 
 function App() {
-  // const [loggedIn, setLoggedIn] = useState(false);
-  // const [token, saveToken, removeToken] = useToken();
-  // // const [screenName, setScreenName] = useState("");
-  // const [error, setError] = useState(null);
-  // const [LogInUrl, setLogInUrl] = useState(getCognitoURL());
-  // const [performanceId, setPerformanceId] = useState("NO PERFORMANCE");
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [token, saveToken, removeToken, setToken] = useToken();
+  const [error, setError] = useState(null);
+  const [LogInUrl, setLogInUrl] = useState(getCognitoURL());
 
   // Get a random background image.
-  // useEffect(() => {
-  //   const randomBackground =
-  //     Backgrounds[Math.floor(Math.random() * Backgrounds.length)];
+  useEffect(() => {
+    const randomBackground =
+      Backgrounds[Math.floor(Math.random() * Backgrounds.length)];
 
-  //   document.body.style.backgroundImage = `url(${randomBackground})`;
-  //   document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundImage = `url(${randomBackground})`;
+    document.body.style.backgroundSize = "cover";
 
-  //   return () => {
-  //     document.body.style.backgroundImage = null;
-  //   };
-  // }, []);
+    return () => {
+      document.body.style.backgroundImage = null;
+    };
+  }, []);
 
   return (
     <BrowserRouter>
-      {/* <Navigation
+      <Navigation
         loggedIn={loggedIn}
         setLoggedIn={setLoggedIn}
         token={token}
@@ -47,29 +43,18 @@ function App() {
         removeToken={removeToken}
         setError={setError}
         LogInUrl={LogInUrl}
-      /> */}
+      />
       <Routes>
-        {/* <Route
+        <Route
           path="/"
           element={<HomePage loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
-        /> */}
+        />
         <Route path="/about" element={<About />} />
         <Route
           path="/performPage"
           element={
-            <WebSocketProvider
-              url={websocketURL}
-              // token={token?.access_token}
-              // performanceId={performanceId}
-            >
-              <PerformPage
-              // screenName={screenName}
-              // setScreenName={setScreenName}
-              // performanceId={performanceId}
-              // setPerformanceId={setPerformanceId}
-              // setPerformanceId={setPerformanceId}
-              // loggedIn={loggedIn}
-              />
+            <WebSocketProvider url={websocketURL}>
+              <PerformPage loggedIn={loggedIn} />
             </WebSocketProvider>
           }
         />

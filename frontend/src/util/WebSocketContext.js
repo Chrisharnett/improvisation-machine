@@ -2,12 +2,12 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 const WebSocketContext = createContext(null);
 
-export const WebSocketProvider = ({ children }) => {
+export const WebSocketProvider = ({ children, url }) => {
   const [socket, setSocket] = useState(null);
   const [incomingMessage, setIncomingMessage] = useState("");
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8765");
+    const ws = new WebSocket(url);
 
     ws.onopen = () => {
       console.log("Connected to WebSocket server");

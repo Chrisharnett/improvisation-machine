@@ -1,6 +1,11 @@
 const ChatBox = ({ message, setMessage, sendMessage, prompt }) => {
   const handleSendMessage = () => {
-    sendMessage(message);
+    sendMessage(
+      JSON.stringify({
+        action: "chat",
+        message: message,
+      })
+    );
     setMessage("");
   };
 

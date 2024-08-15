@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Card, Button, Row, Col } from "react-bootstrap";
 
 const PromptCard = ({
@@ -6,42 +5,28 @@ const PromptCard = ({
   sendMessage,
   prompt,
   gameState,
-  handleNextPrompt,
-  handleIgnorePrompt,
   disableButtons,
+  roomName,
 }) => {
-  const [startTime, setStartTime] = useState(null);
-  const [error, setError] = useState(null);
-  const [logPrompt, setLogPrompt] = useState(null);
-  const [isFetchingNextPrompt, setIsFetchingNextPrompt] = useState(false);
-
-  // const handleNextHarmonyPrompt = () => {};
-
   const handleUsePrompt = () => {
     sendMessage(
       JSON.stringify({
-        action: "sendPrompt",
+        action: "useNextPrompt",
         gameState: gameState,
-        include_tags: [],
-        ignore_tags: ["Ignore", "Start Only", "End Only"],
+        roomName: roomName,
       })
     );
   };
 
-  const handleEndSong = () => {
+  const handleIgnorePrompt = () => {
     sendMessage(
       JSON.stringify({
-        action: "sendPrompt",
-        include_tags: ["End", "End-Only"],
-        ignore_tags: ["Ignore"],
+        action: "ignorePrompt",
+        gameState: gameState,
+        roomName: roomName,
       })
     );
   };
-
-  if (error) {
-    console.error(error);
-    return <div>Error loading data.</div>;
-  }
 
   return (
     <>
@@ -58,11 +43,11 @@ const PromptCard = ({
       >
         {prompt && (
           <>
-            <Card.Title className="p-2 fs-4">{promptTitle}</Card.Title>
+            <Card.Title className="p-2 fs-4">{/* {promptTitle} */}</Card.Title>
             <Card.Body className="fs-4">{prompt}</Card.Body>
             <Card.Footer>
               <Row>
-                {promptTitle === "On Deck" && (
+                {promptTitle === "nextPrompt" && (
                   <>
                     <Row>
                       <Col>
@@ -70,7 +55,7 @@ const PromptCard = ({
                           type="submit"
                           variant="success"
                           className="mx-2"
-                          onClick={handleNextPrompt}
+                          onClick={handleUsePrompt}
                           disabled={disableButtons}
                           style={{ width: "100%" }}
                         >
@@ -96,9 +81,7 @@ const PromptCard = ({
             </Card.Footer>
           </>
         )}
-        {/* </Card.Body> */}
       </Card>
-      {/* </Container> */}
     </>
   );
 };

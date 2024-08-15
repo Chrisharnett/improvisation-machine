@@ -1,6 +1,6 @@
 import { Modal, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useUser from "../auth/useUser";
 
 export const CreatePerformanceModal = ({
@@ -8,50 +8,44 @@ export const CreatePerformanceModal = ({
   setShow,
   screenName,
   setScreenName,
-  // user,
-  handleWebSocketMessage,
   setShowJoinModal,
+  setShowLobbyModal,
   sendMessage,
+  userId,
+  instrument,
+  setInstrument,
+  setRoomCreator,
 }) => {
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     setShow(false);
-    console.log("Modal closed");
-  }, [setShow]);
+  };
 
-  const handleOpen = useCallback(() => {
+  const handleOpen = () => {
     setShow(true);
-    console.log("Modal opened");
-  }, [setShow]);
-
-  const user = useUser();
+  };
 
   const navigate = useNavigate();
 
-  const handleCreatePerformance = useCallback(() => {
-    console.log("Creating performance with screen name:", screenName);
+  const handleCreatePerformance = (e) => {
+    e.preventDefault();
     sendMessage(
       JSON.stringify({
-        action: "createPerformance",
-        sub: user.sub,
+        action: "createRoom",
+        userId: userId,
         screenName: screenName,
+        instrument: instrument,
       })
     );
+    setRoomCreator(true);
     handleClose();
-  }, [sendMessage, user.sub, screenName, handleClose]);
+    setShowLobbyModal(true);
+  };
 
-  const handleJoinPerformance = useCallback(() => {
+  const handleJoinPerformance = () => {
     console.log("Joining performance");
     setShowJoinModal(true);
     handleClose();
-  }, [setShowJoinModal, handleClose]);
-
-  const handleScreenNameChange = useCallback(
-    (e) => {
-      // console.log("Screen name changed:", e.target.value);
-      setScreenName(e.target.value);
-    },
-    [setScreenName]
-  );
+  };
 
   return (
     <>
@@ -69,7 +63,15 @@ export const CreatePerformanceModal = ({
               id="screenName"
               placeholder="Enter your screen name"
               value={screenName}
-              onChange={handleScreenNameChange}
+              onChange={(e) => setScreenName(e.target.value)}
+            />
+            <Form.Label htmlFor="instrument">Instrument</Form.Label>
+            <Form.Control
+              type="text"
+              id="instrument"
+              placeholder="Instrument"
+              value={instrument || ""}
+              onChange={(e) => setInstrument(e.target.value)}
             />
           </Form>
         </Modal.Body>

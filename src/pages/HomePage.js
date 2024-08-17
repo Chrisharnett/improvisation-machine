@@ -4,18 +4,6 @@ import getCognitoURL from "../auth/getCognitoURL";
 import { Link, useNavigate } from "react-router-dom";
 
 const HomePage = ({ loggedIn, setLoggedIn }) => {
-  // const [entryLink, setEntryLink] = useState(null);
-
-  // const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   if (loggedIn) {
-  //     navigate("/performPage");
-  //   } else {
-  //     setEntryLink(getCognitoURL());
-  //   }
-  // }, [loggedIn]);
-
   return (
     <>
       <Container

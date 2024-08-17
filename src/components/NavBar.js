@@ -34,7 +34,7 @@ const Navigation = ({
         `${process.env.REACT_APP_AUTH_API}`,
         JSON.stringify({
           code: code,
-          redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK_LOCAL,
+          redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK,
         })
       );
       const newToken = response.data;

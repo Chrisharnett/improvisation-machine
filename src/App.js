@@ -12,7 +12,7 @@ import { useToken } from "./auth/useToken.js";
 import getCognitoURL from "./auth/getCognitoURL.js";
 import About from "./pages/About.js";
 
-const websocketURL = "wss://ws.a5tral8og.com";
+const websocketURL = process.env.REACT_APP_WEBSOCKET_API_LOCAL;
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);

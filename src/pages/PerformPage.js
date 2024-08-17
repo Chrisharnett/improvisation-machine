@@ -91,15 +91,15 @@ const PerformPage = ({ loggedIn }) => {
     }
   }, [incomingMessage, userId]);
 
-  useEffect(() => {
-    if (!loggedIn) {
-      setShowCreateModal(false);
-      setShowJoinModal(true);
-    } else {
-      setShowJoinModal(false);
-      setShowCreateModal(true);
-    }
-  }, [loggedIn]);
+  // useEffect(() => {
+  //   if (!loggedIn) {
+  //     setShowCreateModal(false);
+  //     setShowJoinModal(true);
+  //   } else {
+  //     setShowJoinModal(false);
+  //     setShowCreateModal(true);
+  //   }
+  // }, [loggedIn]);
 
   useEffect(() => {
     if (user) {

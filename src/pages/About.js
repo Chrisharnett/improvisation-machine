@@ -10,10 +10,10 @@ const About = () => {
       <TopSpacer />
       <Container
         className="d-flex align-items-center justify-content-center"
-        style={{ height: "100vh", width: "100vw" }}
+        style={{ width: "100vw" }}
       >
         <Container className="midLayer glass">
-          <p>
+          {/* <p>
             The Improvisation Director is a web-based application that explores
             the interaction between artificial intelligence (AI), human emotion
             and creativity in musical improvisation. Using any internet-enabled
@@ -27,6 +27,21 @@ const About = () => {
             forges a new pathway in the intersection of AI and musical
             improvisation, leveraging technology to enhance the creative
             dialogue between musicians and their audience.
+          </p> */}
+          <p>
+            The Improvisation Director is a cutting-edge web application that
+            blends artificial intelligence (AI) with human emotion and
+            creativity to redefine musical improvisation. Accessible from any
+            internet-enabled device, both performers and audience members can
+            participate in live performances through an interactive online
+            platform. The system collects real-time feedback from the audience
+            at regular intervals, processing this data with AI to generate
+            dynamic prompts for the musicians, such as “Switch to G minor,”
+            “Increase tempo gradually,” “Play a duet,” or “Start a rhythmic
+            ostinato.” This innovative software empowers musicians to adapt
+            their performances to the evolving preferences of their audience,
+            forging a unique and engaging connection at the crossroads of AI and
+            music.
           </p>
           <p>
             Thanks to support from ArtsNL the Improvisation Director is

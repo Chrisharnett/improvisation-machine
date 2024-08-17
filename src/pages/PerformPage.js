@@ -7,13 +7,15 @@ import { JoinExistingPerformanceModal } from "../modals/JoinExistingPerformanceM
 import { CreatePerformanceModal } from "../modals/CreatePerformanceModal.js";
 import { PerformanceCodeRejectionModal } from "../modals/PerformanceCodeRejectionModal.js";
 import { LobbyModal } from "../modals/LobbyModal.js";
+import MessageCard from "../components/MessageCard.js";
+import OptionCard from "../components/OptionCard.js";
 import { PostPerformancePerformerFeedbackModal } from "../modals/PostPerformancePerformerFeedbackModal.js";
 import useUser from "../auth/useUser.js";
 
-const PerformPage = ({ loggedIn }) => {
+const PerformPage = ({ loggedIn, LogInUrl }) => {
   const [prompt, setPrompt] = useState(null);
-  const [message, setMessage] = useState("");
-
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatResponse, setChatResponse] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [
@@ -35,6 +37,7 @@ const PerformPage = ({ loggedIn }) => {
     setShowPostPerformancePerformerFeedbackModal,
   ] = useState(false);
   const [summary, setSummary] = useState(null);
+  const [gameStatus, setGameStatus] = useState(null);
 
   const { sendMessage, incomingMessage } = useWebSocket();
 
@@ -59,6 +62,9 @@ const PerformPage = ({ loggedIn }) => {
             setCurrentPlayer(message.gameState.performers[i]);
           }
         }
+      } else if (message.action === "welcome") {
+        setChatMessage(message.message);
+        setGameStatus(message.action);
       } else if (message.action === "newPlayer") {
         setGameState(message.gameState);
         setRoomName(message.roomName);
@@ -139,13 +145,52 @@ const PerformPage = ({ loggedIn }) => {
 
   const handleProvideFeedback = () => {};
 
+  const handleChooseCreatePerformance = () => {
+    if (!loggedIn) {
+      window.location.href = LogInUrl;
+    } else {
+      setChatMessage({ action: "respond", message: "What should I call you?" });
+    }
+  };
+
+  const handleChooseJoinPerformance = () => {};
+
   return (
     <>
       <TopSpacer />
       <Container className="fullVHeight d-flex justify-content-center align-items-center">
         <Container className="midLayer glass">
           <h1> Performance</h1>
-          {currentPlayer && (
+          {chatMessage && (
+            <MessageCard
+              message={chatMessage}
+              response={chatResponse}
+              setResponse={setChatResponse}
+              sendMessage={sendMessage}
+            />
+          )}
+          {!currentPlayer ? (
+            <>
+              <Row>
+                <Col>
+                  <OptionCard
+                    message={"Join Performance"}
+                    onClick={handleChooseJoinPerformance}
+                  />
+                </Col>
+                <Col>
+                  <OptionCard
+                    message={
+                      loggedIn
+                        ? "Create Performance"
+                        : "Log in to create a performance"
+                    }
+                    onClick={handleChooseCreatePerformance}
+                  />
+                </Col>
+              </Row>
+            </>
+          ) : (
             <>
               <h2> {currentPlayer.screenName}</h2>
               <Row className="mt-3">
@@ -176,51 +221,50 @@ const PerformPage = ({ loggedIn }) => {
                     ))}
                   </>
                 )}
+                {finalPrompt ? (
+                  roomCreator ? (
+                    <Button
+                      variant="warning"
+                      type="button"
+                      className="w-100"
+                      onClick={handleEndPerformance}
+                    >
+                      Click to log and complete
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="warning"
+                      type="button"
+                      className="w-100"
+                      onClick={handleProvideFeedback}
+                    >
+                      Provide Feedback
+                    </Button>
+                  )
+                ) : (
+                  <Button
+                    variant="warning"
+                    type="button"
+                    className="w-100"
+                    onClick={handleEndSong}
+                  >
+                    End Song
+                  </Button>
+                )}
               </Row>
             </>
           )}
-          <Row className="mt-3">
-            {finalPrompt ? (
-              roomCreator ? (
-                <Button
-                  variant="warning"
-                  type="button"
-                  className="w-100"
-                  onClick={handleEndPerformance}
-                >
-                  Click to log and complete
-                </Button>
-              ) : (
-                <Button
-                  variant="warning"
-                  type="button"
-                  className="w-100"
-                  onClick={handleProvideFeedback}
-                >
-                  Provide Feedback
-                </Button>
-              )
-            ) : (
-              <Button
-                variant="warning"
-                type="button"
-                className="w-100"
-                onClick={handleEndSong}
-              >
-                End Song
-              </Button>
-            )}
-            {gameState && (
-              <>
-                <h2> {roomName} </h2>
-                {gameState.performers.map((performer, index) => (
-                  <Col key={performer.screenName + index} sm="auto">
-                    <p key={index}>{performer.screenName}</p>
-                  </Col>
-                ))}
-              </>
-            )}
-          </Row>
+
+          {gameState && (
+            <>
+              <h2> {roomName} </h2>
+              {gameState.performers.map((performer, index) => (
+                <Col key={performer.screenName + index} sm="auto">
+                  <p key={index}>{performer.screenName}</p>
+                </Col>
+              ))}
+            </>
+          )}
         </Container>
       </Container>
       <JoinExistingPerformanceModal

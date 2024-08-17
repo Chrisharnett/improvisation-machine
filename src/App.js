@@ -54,7 +54,7 @@ function App() {
           path="/performPage"
           element={
             <WebSocketProvider url={websocketURL}>
-              <PerformPage loggedIn={loggedIn} />
+              <PerformPage loggedIn={loggedIn} LogInUrl={LogInUrl} />
             </WebSocketProvider>
           }
         />

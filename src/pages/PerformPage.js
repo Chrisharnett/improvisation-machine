@@ -11,11 +11,13 @@ import MessageCard from "../components/MessageCard.js";
 import OptionCard from "../components/OptionCard.js";
 import { PostPerformancePerformerFeedbackModal } from "../modals/PostPerformancePerformerFeedbackModal.js";
 import useUser from "../auth/useUser.js";
+import { v4 as uuidv4 } from "uuid";
+import LobbyFeedbackChat from "../components/LobbyFeedbackChat.js";
 
 const PerformPage = ({ loggedIn, LogInUrl }) => {
   const [prompt, setPrompt] = useState(null);
   const [chatMessage, setChatMessage] = useState("");
-  const [chatResponse, setChatResponse] = useState("");
+  const [chatResponse, setChatResponse] = useState(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [
@@ -43,6 +45,8 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
 
   const user = useUser();
 
+  const messageActions = ["welcome", "registration"];
+
   useEffect(() => {
     console.log("PerformPage mounted or updated");
     return () => {
@@ -62,8 +66,8 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
             setCurrentPlayer(message.gameState.performers[i]);
           }
         }
-      } else if (message.action === "welcome") {
-        setChatMessage(message.message);
+      } else if (messageActions.includes(message.action)) {
+        setChatMessage(message);
         setGameStatus(message.action);
       } else if (message.action === "newPlayer") {
         setGameState(message.gameState);
@@ -87,6 +91,7 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
       if (message.feedbackQuestion) {
         const type = message.feedbackQuestion.feedbackType;
         if (type === "performerLobby") {
+          setGameStatus("lobby");
           setFeedbackQuestion(message.feedbackQuestion.question);
         }
         if (type === "postPerformancePerformerFeedback") {
@@ -112,6 +117,46 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
       setUserId(user.sub);
     }
   }, [user]);
+
+  const handleChatResponse = (response) => {
+    // e.preventDefault();
+    if (chatMessage.responseAction === "newScreenName") {
+      setScreenName(response);
+      sendMessage(
+        JSON.stringify({
+          action: "registration",
+          userId: userId,
+          screenName: response,
+        })
+      );
+    } else if (chatMessage.responseAction === "newInstrument") {
+      sendMessage(
+        JSON.stringify({
+          action: "registration",
+          userId: userId,
+          screenName: screenName,
+          instrument: response,
+          roomCreator: roomCreator,
+        })
+      );
+    } else if (chatMessage.responseAction === "joinRoom") {
+      let id = userId;
+      if (!id) {
+        id = uuidv4();
+        setUserId(id);
+      }
+      setRoomName(response);
+      sendMessage(
+        JSON.stringify({
+          action: "joinRoom",
+          roomName: response,
+          screenName: screenName,
+          userId: id,
+          instrument: instrument,
+        })
+      );
+    }
+  };
 
   const handleEndSong = () => {
     sendMessage(
@@ -149,7 +194,15 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
     if (!loggedIn) {
       window.location.href = LogInUrl;
     } else {
-      setChatMessage({ action: "respond", message: "What should I call you?" });
+      setGameStatus("registration");
+      // setChatMessage({ action: "respond", message: "What should I call you?" });
+      setRoomCreator(true);
+      sendMessage(
+        JSON.stringify({
+          action: "registration",
+          userId: userId,
+        })
+      );
     }
   };
 
@@ -160,16 +213,18 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
       <TopSpacer />
       <Container className="fullVHeight d-flex justify-content-center align-items-center">
         <Container className="midLayer glass">
-          <h1> Performance</h1>
+          {roomName && <h1>{roomName}</h1>}
           {chatMessage && (
             <MessageCard
               message={chatMessage}
               response={chatResponse}
               setResponse={setChatResponse}
               sendMessage={sendMessage}
+              handleSubmit={handleChatResponse}
             />
           )}
-          {!currentPlayer ? (
+          {gameStatus === "welcome" && (
+            // Render the join and create performance options if there is no current player and the game is in the welcome state
             <>
               <Row>
                 <Col>
@@ -190,71 +245,77 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
                 </Col>
               </Row>
             </>
-          ) : (
+          )}
+          {currentPlayer && <h2>{currentPlayer.screenName}</h2>}
+          {gameStatus === "lobby" && (
             <>
-              <h2> {currentPlayer.screenName}</h2>
-              <Row className="mt-3">
-                {summary && <p>{summary}</p>}
-                {finalPrompt ? (
-                  <Col>
-                    <PromptCard
-                      promptTitle={"Final Prompt"}
-                      prompt={currentPlayer.currentPrompts[0].prompt}
-                      gameState={gameState}
-                      sendMessage={sendMessage}
-                      roomName={roomName}
-                    />
-                  </Col>
-                ) : (
-                  <>
-                    {currentPlayer.currentPrompts.map((prompt, index) => (
-                      <Col key={index}>
-                        <PromptCard
-                          key={index}
-                          promptTitle={prompt.promptTitle[0]}
-                          prompt={prompt.prompt}
-                          gameState={gameState}
-                          sendMessage={sendMessage}
-                          roomName={roomName}
-                        />
-                      </Col>
-                    ))}
-                  </>
-                )}
-                {finalPrompt ? (
-                  roomCreator ? (
-                    <Button
-                      variant="warning"
-                      type="button"
-                      className="w-100"
-                      onClick={handleEndPerformance}
-                    >
-                      Click to log and complete
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="warning"
-                      type="button"
-                      className="w-100"
-                      onClick={handleProvideFeedback}
-                    >
-                      Provide Feedback
-                    </Button>
-                  )
-                ) : (
-                  <Button
-                    variant="warning"
-                    type="button"
-                    className="w-100"
-                    onClick={handleEndSong}
-                  >
-                    End Song
-                  </Button>
-                )}
-              </Row>
+              <LobbyFeedbackChat
+                sendMessage={sendMessage}
+                userId={userId}
+                feedbackQuestion={feedbackQuestion}
+                roomName={roomName}
+              />
             </>
           )}
+          <Row className="mt-3">
+            {summary && <p>{summary}</p>}
+            {finalPrompt ? (
+              <Col>
+                <PromptCard
+                  promptTitle={"Final Prompt"}
+                  prompt={currentPlayer.currentPrompts[0].prompt}
+                  gameState={gameState}
+                  sendMessage={sendMessage}
+                  roomName={roomName}
+                />
+              </Col>
+            ) : (
+              currentPlayer.currentPrompts &&
+              currentPlayer.currentPrompts.map((prompt, index) => (
+                <Col key={index}>
+                  <PromptCard
+                    key={index}
+                    promptTitle={prompt.promptTitle[0]}
+                    prompt={prompt.prompt}
+                    gameState={gameState}
+                    sendMessage={sendMessage}
+                    roomName={roomName}
+                  />
+                </Col>
+              ))
+            )}
 
+            {finalPrompt ? (
+              roomCreator ? (
+                <Button
+                  variant="warning"
+                  type="button"
+                  className="w-100"
+                  onClick={handleEndPerformance}
+                >
+                  Click to log and complete
+                </Button>
+              ) : (
+                <Button
+                  variant="warning"
+                  type="button"
+                  className="w-100"
+                  onClick={handleProvideFeedback}
+                >
+                  Provide Feedback
+                </Button>
+              )
+            ) : (
+              <Button
+                variant="warning"
+                type="button"
+                className="w-100"
+                onClick={handleEndSong}
+              >
+                End Song
+              </Button>
+            )}
+          </Row>
           {gameState && (
             <>
               <h2> {roomName} </h2>

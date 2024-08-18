@@ -1,8 +1,10 @@
 import { Card, Form, Button } from "react-bootstrap";
+import { useState, useEffect } from "react";
 
-const MessageCard = ({ message, response, setResponse, sendMessage }) => {
-  const handleSubmit = (response) => {
-    sendMessage();
+const MessageCard = ({ message, response, setResponse, handleSubmit }) => {
+  const handleClickSubmit = (userResponse) => {
+    handleSubmit(userResponse);
+    setResponse("");
   };
 
   return (
@@ -22,7 +24,7 @@ const MessageCard = ({ message, response, setResponse, sendMessage }) => {
           <Card.Title className="p-2 fs-4"></Card.Title>
           <Card.Body className="fs-4">{message.message}</Card.Body>
           <Card.Footer>
-            {message.action === "respond" && (
+            {message.responseRequired && (
               <>
                 <Form.Control
                   type="text"
@@ -33,7 +35,7 @@ const MessageCard = ({ message, response, setResponse, sendMessage }) => {
                 />
                 <Button
                   variant="primary"
-                  onClick={() => handleSubmit(response)} // Trigger handleSubmit when clicked
+                  onClick={() => handleClickSubmit(response)}
                   className="mt-2"
                 >
                   Submit

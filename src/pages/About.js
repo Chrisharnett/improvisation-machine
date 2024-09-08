@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react";
 import { Container } from "react-bootstrap";
-import getCognitoURL from "../auth/getCognitoURL.js";
-import { Link, useNavigate } from "react-router-dom";
 import { TopSpacer } from "../util/TopSpacer.js";
 
 const About = () => {

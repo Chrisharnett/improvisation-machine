@@ -1,32 +1,29 @@
-import { useNavigate } from "react-router-dom";
-import Modal from "react-bootstrap/Modal";
 import { useEffect } from "react";
+import { Modal } from "react-bootstrap";
 
-export const CreatePromptSuccessModal = ({ show, setShow, prompt }) => {
+export const ErrorModal = ({ show, setShow, message, setMessage }) => {
   const handleClose = () => setShow(false);
   const handleOpen = () => setShow(true);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (show) {
       const timeout = setTimeout(() => {
         handleClose();
+        setMessage("");
       }, 3000);
       return () => clearTimeout(timeout);
     }
-  }, [show]);
+  }, [handleClose, setMessage, show]);
+
+  const [title, error] = (message && Object.entries(message)[0]) || ["", ""];
 
   return (
     <>
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
-          <Modal.Title className="blue-text">Success!</Modal.Title>
+          <Modal.Title className="blue-text">{title}</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="blue-text">
-          {prompt} stored as new performance prompt.
-        </Modal.Body>
-        <Modal.Footer></Modal.Footer>
+        <Modal.Body className="blue-text">{error}</Modal.Body>
       </Modal>
     </>
   );

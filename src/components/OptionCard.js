@@ -1,14 +1,11 @@
-import { Card, Button, Row, Col } from "react-bootstrap";
-import { useState } from "react";
+import { Card, Row } from "react-bootstrap";
 
 const OptionCard = ({ message, onClick }) => {
-  const [response, setResponse] = useState("");
-
   return (
     <>
       <Card
         className="m-2 p-2"
-        onClick={onClick}
+        onClick={() => onClick(message)}
         style={{
           backdropFilter: "blur(10px) saturate(50%)",
           WebkitBackdropFilter: "blur(21px) saturate(50%)",
@@ -19,7 +16,7 @@ const OptionCard = ({ message, onClick }) => {
         }}
       >
         <>
-          <Card.Title className="p-2 fs-4">{/* {promptTitle} */}</Card.Title>
+          <Card.Title className="p-2 fs-4"></Card.Title>
           <Card.Body className="fs-4">{message}</Card.Body>
           <Card.Footer>
             <Row></Row>

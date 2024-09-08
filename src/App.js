@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import Navigation from "./components/NavBar.js";
 import HomePage from "./pages/HomePage.js";
 import PerformPage from "./pages/PerformPage.js";
-import CreatePrompts from "./pages/CreatePrompts.js";
-import { PrivateRoute } from "./auth/privateRoute.js";
+// import { PrivateRoute } from "./auth/privateRoute.js";
 import { Backgrounds } from "./util/Backgrounds.js";
 import { WebSocketProvider } from "./util/WebSocketContext.js";
 import { useToken } from "./auth/useToken.js";
@@ -16,7 +15,7 @@ const websocketURL = process.env.REACT_APP_WEBSOCKET_API_LOCAL;
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [token, saveToken, removeToken, setToken] = useToken();
+  const [token, saveToken, removeToken] = useToken();
   const [error, setError] = useState(null);
   const [LogInUrl, setLogInUrl] = useState(getCognitoURL());
 
@@ -58,9 +57,6 @@ function App() {
             </WebSocketProvider>
           }
         />
-        {/* <Route element={<PrivateRoute />}>
-          <Route path="/createPrompts" element={<CreatePrompts />} />
-        </Route> */}
       </Routes>
     </BrowserRouter>
   );

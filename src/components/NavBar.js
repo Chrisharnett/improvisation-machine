@@ -21,10 +21,8 @@ const Navigation = ({
   useEffect(() => {
     if (token) {
       setLoggedIn(true);
-      console.log("loggedIn");
     } else {
       setLoggedIn(false);
-      console.log("not loggedIn");
     }
   }, [token, setLoggedIn]);
 

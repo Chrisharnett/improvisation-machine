@@ -116,10 +116,11 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
   }, [incomingMessage, userId]);
 
   useEffect(() => {
+    console.log("User: ", user);
     if (user) {
       setUserId(user.sub);
     }
-  }, [user]);
+  }, []);
 
   const handleChatResponse = (response) => {
     if (responseRequired.responseAction === "newScreenName") {

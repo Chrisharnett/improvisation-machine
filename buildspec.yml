@@ -17,9 +17,10 @@ phases:
       - echo Build completed on `date`
       # Navigate to the build directory and create a zip file without the root directory
       - cd build
-      - zip -r -q ../build.zip .
-
+      # - zip -r -q ../build.zip .
 artifacts:
-  # Specify the root zip file as the artifact
+  # Specify the contents of the completed build as the artifact
   files:
-    - build.zip
+    # - build.zip
+    -'**/*'
+    base-directory: build

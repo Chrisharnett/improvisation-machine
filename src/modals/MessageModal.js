@@ -1,21 +1,30 @@
 import { useEffect } from "react";
 import { Modal } from "react-bootstrap";
 
-export const ErrorModal = ({ show, setShow, message, setMessage }) => {
+export const MessageModal = ({
+  show,
+  setShow,
+  message,
+  setMessage,
+  disableTimer,
+}) => {
   const handleClose = () => setShow(false);
   const handleOpen = () => setShow(true);
 
   useEffect(() => {
-    if (show) {
+    if (show && !disableTimer) {
       const timeout = setTimeout(() => {
         handleClose();
         setMessage("");
       }, 3000);
       return () => clearTimeout(timeout);
     }
-  }, [handleClose, setMessage, show]);
+  }, [setMessage, show, disableTimer]);
 
-  const [title, error] = (message && Object.entries(message)[0]) || ["", ""];
+  const [title, announcement] = (message && Object.entries(message)[0]) || [
+    "",
+    "",
+  ];
 
   return (
     <>
@@ -23,7 +32,7 @@ export const ErrorModal = ({ show, setShow, message, setMessage }) => {
         <Modal.Header closeButton>
           <Modal.Title className="blue-text">{title}</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="blue-text">{error}</Modal.Body>
+        <Modal.Body className="blue-text">{announcement}</Modal.Body>
       </Modal>
     </>
   );

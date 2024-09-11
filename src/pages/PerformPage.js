@@ -8,7 +8,7 @@ import useUser from "../auth/useUser.js";
 import { v4 as uuidv4 } from "uuid";
 import LobbyView from "../views/LobbyView.js";
 import GameView from "../views/GameView.js";
-import { ErrorModal } from "../modals/ErrorModal.js";
+import { MessageModal } from "../modals/MessageModal.js";
 
 const PerformPage = ({ loggedIn, LogInUrl }) => {
   const [chatMessage, setChatMessage] = useState("");
@@ -25,8 +25,9 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
   const [finalPrompt, setFinalPrompt] = useState(false);
   const [summary, setSummary] = useState(null);
   const [gameStatus, setGameStatus] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState(null);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [disableTimer, setDisableTimer] = useState(false);
 
   const { sendMessage, incomingMessage } = useWebSocket();
 
@@ -38,10 +39,12 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
     if (incomingMessage) {
       const message = JSON.parse(incomingMessage);
       if (message.errorMessage) {
-        setErrorMessage(message.errorMessage);
-        setShowErrorModal(true);
+        setModalMessage(message.errorMessage);
+        setShowMessageModal(true);
       }
       if (message.action === "newGameState") {
+        setShowMessageModal(false);
+        setDisableTimer(false);
         setChatMessage("");
         setFeedbackQuestion("");
         setSummary(message.summary);
@@ -58,6 +61,12 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
             );
           }
         }
+      } else if (message.action === "announcement") {
+        setModalMessage(message.message);
+        if (message.disableTimer) {
+          setDisableTimer(true);
+        }
+        setShowMessageModal(true);
       } else if (messageActions.includes(message.action)) {
         setChatMessage(message.message);
         if (message.responseRequired) {
@@ -82,8 +91,6 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
         setGameStatus(message.gameStatus);
         setChatMessage(message.summary);
         resetPlayer();
-      } else if (message.action === "finalSummary") {
-        setChatMessage(message);
       }
       if (message.feedbackQuestion) {
         const type = message.feedbackQuestion.feedbackType;
@@ -116,7 +123,6 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
   }, [incomingMessage, userId]);
 
   useEffect(() => {
-    console.log("User: ", user);
     if (user) {
       setUserId(user.sub);
     }
@@ -314,11 +320,12 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
           )}
         </Container>
       </Container>
-      <ErrorModal
-        show={showErrorModal}
-        setShow={setShowErrorModal}
-        message={errorMessage}
-        setMessage={setErrorMessage}
+      <MessageModal
+        show={showMessageModal}
+        setShow={setShowMessageModal}
+        message={modalMessage}
+        setMessage={setModalMessage}
+        disableTimer={disableTimer}
       />
     </>
   );

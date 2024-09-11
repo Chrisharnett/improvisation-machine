@@ -47,6 +47,12 @@ const LobbyView = ({
     e.preventDefault();
     sendMessage(
       JSON.stringify({
+        action: "announceStartPerformance",
+        roomName: roomName,
+      })
+    );
+    sendMessage(
+      JSON.stringify({
         action: "startPerformance",
         roomName: roomName,
         userId: userId,

@@ -88,13 +88,6 @@ const Navigation = ({
               <Nav.Link as={Link} to="/about">
                 About this project
               </Nav.Link>
-              {loggedIn && (
-                <>
-                  <Nav.Link as={Link} to="/createPrompts">
-                    Manage Prompts
-                  </Nav.Link>
-                </>
-              )}
             </Nav>
 
             {loggedIn ? (

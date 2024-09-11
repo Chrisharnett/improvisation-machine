@@ -24,7 +24,7 @@ const About = () => {
             forges a new pathway in the intersection of AI and musical
             improvisation, leveraging technology to enhance the creative
             dialogue between musicians and their audience.
-          </p> */}
+          </p>
           <p>
             The Improvisation Director is a cutting-edge web application that
             blends artificial intelligence (AI) with human emotion and
@@ -44,6 +44,16 @@ const About = () => {
             Thanks to support from ArtsNL the Improvisation Director is
             currently under development. To help in developing this project,
             join A5tral 8og on Twitch every Wednesday from 7:30 to 9.
+          </p> */}
+          <p>
+            The Improvisation Director is a web app that brings musicians
+            together in new ways! Powered by AI, it provides dynamic prompts
+            like "Switch to G minor" or "Pick up the tempo!" during live
+            performances, guiding musicians through real-time creative decisions
+            and shaping a unique musical experience. Supported by ArtsNL, the
+            project is currently in development. Tune in to a5tral 8og's Twitch
+            stream every Wednesday from 7:30 to 9 PM to see the magic unfold and
+            be part of the journey!
           </p>
         </Container>
       </Container>

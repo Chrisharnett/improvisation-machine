@@ -21,10 +21,8 @@ const Navigation = ({
   useEffect(() => {
     if (token) {
       setLoggedIn(true);
-      console.log("loggedIn");
     } else {
       setLoggedIn(false);
-      console.log("not loggedIn");
     }
   }, [token, setLoggedIn]);
 
@@ -90,13 +88,6 @@ const Navigation = ({
               <Nav.Link as={Link} to="/about">
                 About this project
               </Nav.Link>
-              {loggedIn && (
-                <>
-                  <Nav.Link as={Link} to="/createPrompts">
-                    Manage Prompts
-                  </Nav.Link>
-                </>
-              )}
             </Nav>
 
             {loggedIn ? (

@@ -1,32 +1,56 @@
-import { Card, Button, Row, Col } from "react-bootstrap";
+import { Card, Row } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import ThumbsUpDownButtons from "./ThumbsUpDownButtons";
 
 const PromptCard = ({
   promptTitle,
   sendMessage,
   prompt,
   gameState,
-  disableButtons,
   roomName,
+  userId,
 }) => {
-  const handleUsePrompt = () => {
+  const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    if (promptTitle === "currentPrompt") {
+      setTitle("Play");
+    } else if (promptTitle !== "Final Prompt") {
+      setTitle("");
+    }
+  }, [promptTitle]);
+
+  const handleThumbsUp = () => {
     sendMessage(
       JSON.stringify({
-        action: "useNextPrompt",
+        action: "reactToPrompt",
         gameState: gameState,
+        reaction: "like",
+        userId: userId,
+        promptTitle: promptTitle,
+        prompt: prompt,
         roomName: roomName,
       })
     );
   };
 
-  const handleIgnorePrompt = () => {
+  const handleThumbsDown = () => {
     sendMessage(
       JSON.stringify({
-        action: "ignorePrompt",
+        action: "reactToPrompt",
         gameState: gameState,
+        reaction: "reject",
+        promptTitle: promptTitle,
+        userId: userId,
+        prompt: prompt,
         roomName: roomName,
       })
     );
   };
+
+  useEffect(() => {
+    console.log(promptTitle, ": ", prompt);
+  }, [prompt, promptTitle]);
 
   return (
     <>
@@ -43,40 +67,14 @@ const PromptCard = ({
       >
         {prompt && (
           <>
-            <Card.Title className="p-2 fs-4">{/* {promptTitle} */}</Card.Title>
+            <Card.Title className="p-2 fs-4">{title}</Card.Title>
             <Card.Body className="fs-4">{prompt}</Card.Body>
             <Card.Footer>
               <Row>
-                {promptTitle === "nextPrompt" && (
-                  <>
-                    <Row>
-                      <Col>
-                        <Button
-                          type="submit"
-                          variant="success"
-                          className="mx-2"
-                          onClick={handleUsePrompt}
-                          disabled={disableButtons}
-                          style={{ width: "100%" }}
-                        >
-                          Use
-                        </Button>
-                      </Col>
-                      <Col>
-                        <Button
-                          type="submit"
-                          variant="danger"
-                          className="mx-2"
-                          onClick={handleIgnorePrompt}
-                          disabled={disableButtons}
-                          style={{ width: "100%" }}
-                        >
-                          Ignore
-                        </Button>
-                      </Col>
-                    </Row>
-                  </>
-                )}
+                <ThumbsUpDownButtons
+                  onThumbsUpClick={handleThumbsUp}
+                  onThumbsDownClick={handleThumbsDown}
+                />
               </Row>
             </Card.Footer>
           </>

@@ -14,7 +14,7 @@ export const WebSocketProvider = ({ children, url }) => {
     };
 
     ws.onmessage = (event) => {
-      console.log("Received message:", event.data);
+      console.log("Received message");
       setIncomingMessage(event.data);
     };
 

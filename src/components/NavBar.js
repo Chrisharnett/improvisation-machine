@@ -28,11 +28,15 @@ const Navigation = ({
 
   const codeForToken = async (code) => {
     try {
+      const callback =
+        process.env.REACT_APP_ENV === "prod"
+          ? process.env.REACT_APP_COGNITO_CALLBACK_PROD
+          : process.env.REACT_APP_COGNITO_CALLBACK_LOCAL;
       const response = await axios.post(
         `${process.env.REACT_APP_AUTH_API}`,
         JSON.stringify({
           code: code,
-          redirect_uri: process.env.REACT_APP_COGNITO_CALLBACK,
+          redirect_uri: callback,
         })
       );
       const newToken = response.data;
@@ -88,14 +92,21 @@ const Navigation = ({
               <Nav.Link as={Link} to="/about">
                 About this project
               </Nav.Link>
+              {loggedIn && (
+                <Nav.Link as={Link} to="/playerProfile">
+                  Player Profile
+                </Nav.Link>
+              )}
             </Nav>
 
             {loggedIn ? (
-              <Nav>
-                <Nav.Link href="#" onClick={logOutHandler}>
-                  <h4>Logout</h4>
-                </Nav.Link>
-              </Nav>
+              <>
+                <Nav>
+                  <Nav.Link href="#" onClick={logOutHandler}>
+                    <h4>Logout</h4>
+                  </Nav.Link>
+                </Nav>
+              </>
             ) : (
               <Nav>
                 <Nav.Link href="#login" onClick={logInHandler}>

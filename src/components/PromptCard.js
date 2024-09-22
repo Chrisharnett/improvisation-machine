@@ -6,9 +6,8 @@ const PromptCard = ({
   promptTitle,
   sendMessage,
   prompt,
-  gameState,
+  currentPlayer,
   roomName,
-  userId,
 }) => {
   const [title, setTitle] = useState("");
 
@@ -24,12 +23,11 @@ const PromptCard = ({
     sendMessage(
       JSON.stringify({
         action: "reactToPrompt",
-        gameState: gameState,
         reaction: "like",
-        userId: userId,
         promptTitle: promptTitle,
         prompt: prompt,
         roomName: roomName,
+        currentPlayer: currentPlayer,
       })
     );
   };
@@ -38,10 +36,9 @@ const PromptCard = ({
     sendMessage(
       JSON.stringify({
         action: "reactToPrompt",
-        gameState: gameState,
+        currentPlayer: currentPlayer,
         reaction: "reject",
         promptTitle: promptTitle,
-        userId: userId,
         prompt: prompt,
         roomName: roomName,
       })

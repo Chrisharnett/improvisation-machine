@@ -5,39 +5,34 @@ import { useEffect, useState } from "react";
 const GameView = ({
   currentPlayer,
   roomName,
-  gameState,
   sendMessage,
   finalPrompt,
   gameStatus,
-  roomCreator,
 }) => {
   const [buttonText, setButtonText] = useState("Get Ending");
   const [lastPrompt, setLastPrompt] = useState();
   const [disableButton, setDisableButton] = useState(false);
 
-  // useEffect(() => {
-  //   setButtonText(gameStatus === "endSong" ? "End Performance" : "Get Ending");
-  // }, [gameStatus]);
-
   useEffect(() => {
-    if (finalPrompt) {
+    if (gameStatus === "endSong") {
       setDisableButton(false);
       setButtonText("End Performance");
       for (let [key, prompt] of Object.entries(currentPlayer.currentPrompts)) {
         if (key === "endPrompt") {
-          setLastPrompt(prompt);
+          setLastPrompt(prompt.prompt);
         }
       }
     }
-  }, [finalPrompt, currentPlayer.currentPrompts]);
+  }, [gameStatus]);
 
   const handleEndSong = () => {
     if (finalPrompt) {
-      if (roomCreator) {
+      if (currentPlayer.roomCreator) {
         sendMessage(
           JSON.stringify({
             action: "performanceComplete",
             roomName: roomName,
+            currentPlayer: currentPlayer,
           })
         );
       }
@@ -48,6 +43,7 @@ const GameView = ({
         JSON.stringify({
           action: "endSong",
           roomName: roomName,
+          currentPlayer: currentPlayer,
         })
       );
     }
@@ -55,15 +51,15 @@ const GameView = ({
 
   return (
     <>
-      {gameStatus === "endSong" && lastPrompt ? (
+      {gameStatus === "endSong" ? (
         <Col>
           <PromptCard
             promptTitle={"Final Prompt"}
-            prompt={lastPrompt.prompt}
+            prompt={lastPrompt}
             userId={currentPlayer.userId}
-            gameState={gameState}
             sendMessage={sendMessage}
             roomName={roomName}
+            currentPlayer={currentPlayer}
           />
         </Col>
       ) : (
@@ -76,9 +72,9 @@ const GameView = ({
                   promptTitle={key}
                   prompt={prompt.prompt}
                   userId={currentPlayer.userId}
-                  gameState={gameState}
                   sendMessage={sendMessage}
                   roomName={roomName}
+                  currentPlayer={currentPlayer}
                 />
               </Col>
             )

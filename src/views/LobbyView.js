@@ -5,25 +5,21 @@ import { useEffect, useState } from "react";
 const LobbyView = ({
   feedbackQuestion,
   setFeedbackQuestion,
-  roomCreator,
   sendMessage,
   roomName,
-  userId,
-  screenName,
+  currentPlayer,
   setChatMessage,
 }) => {
   const [disableButton, setDisableButton] = useState(true);
   const [error, setError] = useState("");
-  const [userOption, setUserOption] = useState("");
 
   useEffect(() => {
-    if (roomCreator) {
+    if (currentPlayer.roomCreator) {
       setDisableButton(false);
     }
-  }, [roomCreator]);
+  }, [currentPlayer.roomCreator]);
 
   const handleLobbyFeedback = (option) => {
-    // e.preventDefault();
     if (!option.trim()) {
       setError("Response cannot be empty.");
     } else {
@@ -32,9 +28,8 @@ const LobbyView = ({
           action: "performerLobbyFeedbackResponse",
           roomName: roomName,
           feedbackQuestion: feedbackQuestion,
-          userId: userId,
+          currentPlayer: currentPlayer,
           response: option,
-          screenName: screenName,
         })
       );
       setChatMessage(option);
@@ -49,13 +44,14 @@ const LobbyView = ({
       JSON.stringify({
         action: "announceStartPerformance",
         roomName: roomName,
+        currentPlayer: currentPlayer,
       })
     );
     sendMessage(
       JSON.stringify({
         action: "startPerformance",
         roomName: roomName,
-        userId: userId,
+        currentPlayer: currentPlayer,
       })
     );
     setDisableButton(true);
@@ -72,7 +68,7 @@ const LobbyView = ({
             />
           </Col>
         ))}
-        {roomCreator && (
+        {currentPlayer?.roomCreator && (
           <Button
             variant="success"
             onClick={handleStartPerformance}

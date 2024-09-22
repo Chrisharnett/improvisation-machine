@@ -1,10 +1,10 @@
 import { Container } from "react-bootstrap";
-import { TopSpacer } from "../util/TopSpacer.js";
+import { Spacer } from "../util/Spacer.js";
 
 const About = () => {
   return (
     <>
-      <TopSpacer />
+      <Spacer />
       <Container
         className="d-flex align-items-center justify-content-center"
         style={{ width: "100vw" }}

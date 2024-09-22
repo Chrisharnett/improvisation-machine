@@ -1,13 +1,21 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { WebSocketProvider } from "./util/WebSocketContext.js";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const websocketURL =
+  process.env.REACT_APP_ENV === "prod"
+    ? process.env.REACT_APP_WEBSOCKET_API_PROD
+    : process.env.REACT_APP_WEBSOCKET_API_LOCAL;
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <WebSocketProvider url={websocketURL}>
+      <App />
+    </WebSocketProvider>
   </React.StrictMode>
 );
 

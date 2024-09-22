@@ -1,6 +1,6 @@
-import { Container, Row, Col, Button } from "react-bootstrap";
+import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { useEffect, useState } from "react";
-import { TopSpacer } from "../util/TopSpacer.js";
+import { Spacer } from "../util/Spacer.js";
 import { useWebSocket } from "../util/WebSocketContext.js";
 import MessageCard from "../components/MessageCard.js";
 import OptionCard from "../components/OptionCard.js";
@@ -10,17 +10,16 @@ import LobbyView from "../views/LobbyView.js";
 import GameView from "../views/GameView.js";
 import { MessageModal } from "../modals/MessageModal.js";
 
-const PerformPage = ({ loggedIn, LogInUrl }) => {
+const PerformPage = ({
+  loggedIn,
+  LogInUrl,
+  currentPlayer,
+  setCurrentPlayer,
+}) => {
   const [chatMessage, setChatMessage] = useState("");
   const [chatResponse, setChatResponse] = useState("");
   const [responseRequired, setResponseRequired] = useState(false);
-  const [screenName, setScreenName] = useState("");
   const [roomName, setRoomName] = useState("");
-  const [gameState, setGameState] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [currentPlayer, setCurrentPlayer] = useState(null);
-  const [instrument, setInstrument] = useState(null);
-  const [roomCreator, setRoomCreator] = useState(false);
   const [feedbackQuestion, setFeedbackQuestion] = useState(null);
   const [finalPrompt, setFinalPrompt] = useState(false);
   const [summary, setSummary] = useState(null);
@@ -28,12 +27,28 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
   const [modalMessage, setModalMessage] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [disableTimer, setDisableTimer] = useState(false);
+  const [performanceMode, setPerformanceMode] = useState(true);
+  const [performerList, setPerformerList] = useState([]);
 
-  const { sendMessage, incomingMessage } = useWebSocket();
+  const { sendMessage, incomingMessage, ready } = useWebSocket();
 
   const user = useUser();
 
   const messageActions = ["welcome", "registration", "debrief"];
+
+  useEffect(() => {
+    const sendMessageWhenReady = async () => {
+      if (ready) {
+        sendMessage(
+          JSON.stringify({
+            action: "getStarted",
+            currentPlayer: currentPlayer,
+          })
+        );
+      }
+    };
+    sendMessageWhenReady();
+  }, [ready]);
 
   useEffect(() => {
     if (incomingMessage) {
@@ -42,7 +57,7 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
         setModalMessage(message.errorMessage);
         setShowMessageModal(true);
       }
-      if (message.action === "newGameState") {
+      if (message.gameState) {
         setShowMessageModal(false);
         setDisableTimer(false);
         setChatMessage("");
@@ -50,10 +65,13 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
         setSummary(message.summary);
         setFinalPrompt(null);
         setGameStatus(message.gameStatus);
-        setGameState(message.gameState);
         setRoomName(message.roomName);
         for (let i in message.gameState.performers) {
-          if (message.gameState.performers[i].userId === userId) {
+          const screenName = message.gameState.performers[i].screenName;
+          if (!performerList.includes(screenName)) {
+            setPerformerList((prevList) => [...prevList, screenName]);
+          }
+          if (message.gameState.performers[i].userId === currentPlayer.userId) {
             setCurrentPlayer(message.gameState.performers[i]);
             console.log(
               "New Game State: ",
@@ -61,7 +79,9 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
             );
           }
         }
-      } else if (message.action === "announcement") {
+      }
+
+      if (message.action === "announcement") {
         setModalMessage(message.message);
         if (message.disableTimer) {
           setDisableTimer(true);
@@ -73,18 +93,6 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
           setResponseRequired(message);
         }
         setGameStatus(message.action);
-      } else if (message.action === "newPlayer") {
-        setGameState(message.gameState);
-        setRoomName(message.roomName);
-      } else if (message.action === "endSong") {
-        setGameStatus(message.action);
-        setGameState(message.gameState);
-        for (let i in message.gameState.performers) {
-          if (message.gameState.performers[i].userId === userId) {
-            setCurrentPlayer(message.gameState.performers[i]);
-          }
-        }
-        setFinalPrompt(true);
       } else if (message.action === "resetPlayer") {
         resetPlayer();
       } else if (message.action === "finalSummary") {
@@ -92,11 +100,20 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
         setChatMessage(message.summary);
         resetPlayer();
       }
+
+      if (message.gameStatus === "endSong") {
+        setGameStatus(message.action);
+        setFinalPrompt(true);
+      }
+
       if (message.feedbackQuestion) {
         const type = message.feedbackQuestion.feedbackType;
         if (type === "performerLobby") {
           for (let i in message.feedbackQuestion.questions) {
-            if (message.feedbackQuestion.questions[i].userId === userId) {
+            if (
+              message.feedbackQuestion.questions[i].userId ===
+              currentPlayer.userId
+            ) {
               setResponseRequired(message.responseRequired);
               setChatMessage(
                 message.feedbackQuestion.questions[i].question.question
@@ -110,7 +127,10 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
         }
         if (type === "postPerformancePerformerFeedback") {
           for (let i in message.feedbackQuestion.questions) {
-            if (message.feedbackQuestion.questions[i].userId === userId) {
+            if (
+              message.feedbackQuestion.questions[i].userId ===
+              currentPlayer.userId
+            ) {
               setResponseRequired(message.responseRequired);
               setChatMessage(message.feedbackQuestion.questions[i].question);
               setFeedbackQuestion(message.feedbackQuestion.questions[i]);
@@ -120,44 +140,43 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
         }
       }
     }
-  }, [incomingMessage, userId]);
+  }, [incomingMessage]);
 
-  useEffect(() => {
-    if (user) {
-      setUserId(user.sub);
-    }
-  }, []);
+  const handlePerformanceModeSwitch = (e) => {
+    setPerformanceMode(e.target.checked);
+  };
 
   const handleChatResponse = (response) => {
     if (responseRequired.responseAction === "newScreenName") {
-      setScreenName(response);
+      const updatedUser = { ...user, screenName: response };
+      setCurrentPlayer(updatedUser);
+
       sendMessage(
         JSON.stringify({
           action: "registration",
-          userId: userId,
-          screenName: response,
+          currentPlayer: updatedUser,
+          loggedIn: loggedIn,
         })
       );
     } else if (responseRequired.responseAction === "newInstrument") {
-      setInstrument(response);
+      const updatedUser = { ...user, instrument: response };
+      setCurrentPlayer(updatedUser);
       sendMessage(
         JSON.stringify({
           action: "registration",
-          userId: userId,
-          screenName: screenName,
-          instrument: response,
-          roomCreator: roomCreator,
+          currentPlayer: updatedUser,
+          loggedIn: loggedIn,
         })
       );
     } else if (responseRequired.responseAction === "joinRoom") {
-      setRoomName(response);
+      const roomName = response.toLowerCase().trim();
+      setRoomName(roomName);
       sendMessage(
         JSON.stringify({
           action: "registration",
-          roomName: response,
-          screenName: screenName,
-          userId: userId,
-          instrument: instrument,
+          roomName: roomName,
+          currentPlayer: currentPlayer,
+          loggedIn: loggedIn,
         })
       );
     } else if (
@@ -167,7 +186,7 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
         JSON.stringify({
           action: responseRequired,
           roomName: roomName,
-          userId: userId,
+          currentPlayer: currentPlayer,
           question: chatMessage,
           response: response,
         })
@@ -179,7 +198,6 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
   };
 
   const resetPlayer = () => {
-    setGameState(null);
     setFeedbackQuestion(null);
     setFinalPrompt(false);
     currentPlayer.currentPrompts = [];
@@ -191,11 +209,13 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
     } else {
       setChatMessage("");
       setGameStatus("registration");
-      setRoomCreator(true);
+      currentPlayer.roomCreator = true;
       sendMessage(
         JSON.stringify({
           action: "registration",
-          userId: userId,
+          currentPlayer: currentPlayer,
+          loggedIn: loggedIn,
+          performanceMode: performanceMode,
         })
       );
     }
@@ -204,15 +224,16 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
   const handleChooseJoinPerformance = () => {
     setChatMessage("");
     setGameStatus("registration");
-    let id = userId;
+    let id = currentPlayer.userId;
     if (!id) {
       id = uuidv4();
-      setUserId(id);
+      currentPlayer.userId = id;
     }
     sendMessage(
       JSON.stringify({
         action: "registration",
-        userId: id,
+        currentPlayer: currentPlayer,
+        loggedIn: loggedIn,
       })
     );
   };
@@ -221,17 +242,17 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
     sendMessage(
       JSON.stringify({
         action: "playAgain",
-        userId: userId,
-        screenName: screenName,
+        currentPlayer: currentPlayer,
         roomName: roomName,
-        roomCreator: roomCreator,
       })
     );
   };
 
+  const { screenName } = currentPlayer || "";
+
   return (
     <>
-      <TopSpacer />
+      <Spacer />
       <Container className="fullVHeight d-flex justify-content-center align-items-center">
         <Container className="midLayer glass">
           {roomName && <h1>{roomName}</h1>}
@@ -265,10 +286,19 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
                   />
                 </Col>
               </Row>
+              <Form>
+                <Form.Switch
+                  type="switch"
+                  id="performanceMode"
+                  label="Performance Mode"
+                  checked={performanceMode}
+                  onChange={handlePerformanceModeSwitch}
+                />
+              </Form>
             </>
           )}
           <Row className="mt-3">
-            {gameStatus === "finalSummary" && roomCreator && (
+            {gameStatus === "finalSummary" && currentPlayer?.roomCreator && (
               <>
                 <>
                   <Button
@@ -286,11 +316,9 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
               <LobbyView
                 feedbackQuestion={feedbackQuestion}
                 setFeedbackQuestion={setFeedbackQuestion}
-                roomCreator={roomCreator}
                 sendMessage={sendMessage}
                 roomName={roomName}
-                userId={userId}
-                screenName={screenName}
+                currentPlayer={currentPlayer}
                 setChatMessage={setChatMessage}
               />
             )}
@@ -298,22 +326,20 @@ const PerformPage = ({ loggedIn, LogInUrl }) => {
               <>
                 <GameView
                   currentPlayer={currentPlayer}
-                  gameState={gameState}
                   roomName={roomName}
                   sendMessage={sendMessage}
                   finalPrompt={finalPrompt}
                   gameStatus={gameStatus}
-                  roomCreator={roomCreator}
                 />
               </>
             )}
           </Row>
-          {gameState && (
+          {performerList.length > 0 && (
             <>
               <h2> Players </h2>
-              {gameState.performers.map((performer, index) => (
-                <Col key={performer.screenName + index} sm="auto">
-                  <p key={index}>{performer.screenName}</p>
+              {performerList.map((performer, index) => (
+                <Col key={index} sm="auto">
+                  <p>{performer}</p>
                 </Col>
               ))}
             </>

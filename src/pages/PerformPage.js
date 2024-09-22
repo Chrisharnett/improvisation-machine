@@ -1,6 +1,5 @@
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { useEffect, useState } from "react";
-import { Spacer } from "../util/Spacer.js";
 import { useWebSocket } from "../util/WebSocketContext.js";
 import MessageCard from "../components/MessageCard.js";
 import OptionCard from "../components/OptionCard.js";
@@ -27,7 +26,7 @@ const PerformPage = ({
   const [modalMessage, setModalMessage] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [disableTimer, setDisableTimer] = useState(false);
-  const [performanceMode, setPerformanceMode] = useState(true);
+  const [performanceMode, setPerformanceMode] = useState(false);
   const [performerList, setPerformerList] = useState([]);
 
   const { sendMessage, incomingMessage, ready } = useWebSocket();
@@ -48,6 +47,7 @@ const PerformPage = ({
       }
     };
     sendMessageWhenReady();
+    showMessageSent({ "Loading Page": "Please wait..." });
   }, [ready]);
 
   useEffect(() => {
@@ -59,11 +59,9 @@ const PerformPage = ({
       }
       if (message.gameState) {
         setShowMessageModal(false);
+        setShowMessageModal(false);
         setDisableTimer(false);
-        setChatMessage("");
-        setFeedbackQuestion("");
         setSummary(message.summary);
-        setFinalPrompt(null);
         setGameStatus(message.gameStatus);
         setRoomName(message.roomName);
         for (let i in message.gameState.performers) {
@@ -80,6 +78,12 @@ const PerformPage = ({
           }
         }
       }
+      if (message.gameStatus === "improvise") {
+        setShowMessageModal(false);
+        setChatMessage("");
+        setFeedbackQuestion("");
+        setFinalPrompt(null);
+      }
 
       if (message.action === "announcement") {
         setModalMessage(message.message);
@@ -88,6 +92,7 @@ const PerformPage = ({
         }
         setShowMessageModal(true);
       } else if (messageActions.includes(message.action)) {
+        setShowMessageModal(false);
         setChatMessage(message.message);
         if (message.responseRequired) {
           setResponseRequired(message);
@@ -96,17 +101,20 @@ const PerformPage = ({
       } else if (message.action === "resetPlayer") {
         resetPlayer();
       } else if (message.action === "finalSummary") {
+        setShowMessageModal(false);
         setGameStatus(message.gameStatus);
         setChatMessage(message.summary);
         resetPlayer();
       }
 
       if (message.gameStatus === "endSong") {
+        setShowMessageModal(false);
         setGameStatus(message.action);
         setFinalPrompt(true);
       }
 
       if (message.feedbackQuestion) {
+        setShowMessageModal(false);
         const type = message.feedbackQuestion.feedbackType;
         if (type === "performerLobby") {
           for (let i in message.feedbackQuestion.questions) {
@@ -126,6 +134,7 @@ const PerformPage = ({
           setRoomName(message.roomName);
         }
         if (type === "postPerformancePerformerFeedback") {
+          setShowMessageModal(false);
           for (let i in message.feedbackQuestion.questions) {
             if (
               message.feedbackQuestion.questions[i].userId ===
@@ -158,6 +167,7 @@ const PerformPage = ({
           loggedIn: loggedIn,
         })
       );
+      showMessageSent();
     } else if (responseRequired.responseAction === "newInstrument") {
       const updatedUser = { ...user, instrument: response };
       setCurrentPlayer(updatedUser);
@@ -179,6 +189,7 @@ const PerformPage = ({
           loggedIn: loggedIn,
         })
       );
+      showMessageSent();
     } else if (
       responseRequired === "postPerformancePerformerFeedbackResponse"
     ) {
@@ -192,6 +203,7 @@ const PerformPage = ({
         })
       );
     }
+    showMessageSent();
     setChatMessage("");
     setChatResponse("");
     setResponseRequired(false);
@@ -219,6 +231,7 @@ const PerformPage = ({
         })
       );
     }
+    showMessageSent();
   };
 
   const handleChooseJoinPerformance = () => {
@@ -236,6 +249,7 @@ const PerformPage = ({
         loggedIn: loggedIn,
       })
     );
+    showMessageSent();
   };
 
   const handlePlayAgain = () => {
@@ -246,13 +260,19 @@ const PerformPage = ({
         roomName: roomName,
       })
     );
+    showMessageSent();
+  };
+
+  const showMessageSent = (message) => {
+    setModalMessage(message || { "Message Sent": "Waiting for response" });
+    setDisableTimer(true);
+    setShowMessageModal(true);
   };
 
   const { screenName } = currentPlayer || "";
 
   return (
     <>
-      <Spacer />
       <Container className="fullVHeight d-flex justify-content-center align-items-center">
         <Container className="midLayer glass">
           {roomName && <h1>{roomName}</h1>}

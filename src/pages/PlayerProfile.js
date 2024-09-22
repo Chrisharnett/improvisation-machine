@@ -80,7 +80,7 @@ const PlayerProfile = ({ currentPlayer, setCurrentPlayer }) => {
             <Form.Control
               as="textarea"
               rows={3}
-              value={instrument}
+              value={instrument || ""}
               onChange={(e) => setInstrument(e.target.value)}
               placeholder={
                 instrument || "What do you play? How do you play it?"

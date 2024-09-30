@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { useWebSocket } from "../util/WebSocketContext.js";
 import MessageCard from "../components/MessageCard.js";
 import OptionCard from "../components/OptionCard.js";
-import useUser from "../auth/useUser.js";
+// import useUser from "../auth/useUser.js";
 import { v4 as uuidv4 } from "uuid";
 import LobbyView from "../views/LobbyView.js";
 import GameView from "../views/GameView.js";
 import { MessageModal } from "../modals/MessageModal.js";
+import { CSSTransition } from "react-transition-group";
 
 const PerformPage = ({
   loggedIn,
@@ -21,17 +22,24 @@ const PerformPage = ({
   const [roomName, setRoomName] = useState("");
   const [feedbackQuestion, setFeedbackQuestion] = useState(null);
   const [finalPrompt, setFinalPrompt] = useState(false);
-  const [summary, setSummary] = useState(null);
   const [gameStatus, setGameStatus] = useState(null);
   const [modalMessage, setModalMessage] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [disableTimer, setDisableTimer] = useState(false);
   const [performanceMode, setPerformanceMode] = useState(false);
   const [performerList, setPerformerList] = useState([]);
+  const [showContainer, setShowContainer] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(true);
 
   const { sendMessage, incomingMessage, ready } = useWebSocket();
 
-  const user = useUser();
+  const { screenName } = currentPlayer || "";
+
+  useEffect(() => {
+    if (roomName || screenName || chatMessage) {
+      setShowContainer(true);
+    }
+  }, [roomName, screenName, chatMessage]);
 
   const messageActions = ["welcome", "registration", "debrief"];
 
@@ -61,7 +69,6 @@ const PerformPage = ({
         setShowMessageModal(false);
         setShowMessageModal(false);
         setDisableTimer(false);
-        setSummary(message.summary);
         setGameStatus(message.gameStatus);
         setRoomName(message.roomName);
         for (let i in message.gameState.performers) {
@@ -70,7 +77,17 @@ const PerformPage = ({
             setPerformerList((prevList) => [...prevList, screenName]);
           }
           if (message.gameState.performers[i].userId === currentPlayer.userId) {
-            setCurrentPlayer(message.gameState.performers[i]);
+            setShowPrompt(false);
+            if (!currentPlayer.currentPrompts) {
+              setCurrentPlayer(message.gameState.performers[i]);
+              setShowPrompt(true);
+            } else {
+              setTimeout(() => {
+                setCurrentPlayer(message.gameState.performers[i]);
+                setShowPrompt(true);
+              }, 700); // Timeout should match the fade-out duration\
+            }
+
             console.log(
               "New Game State: ",
               message.gameState.performers[i].currentPrompts
@@ -157,25 +174,22 @@ const PerformPage = ({
 
   const handleChatResponse = (response) => {
     if (responseRequired.responseAction === "newScreenName") {
-      const updatedUser = { ...user, screenName: response };
+      const updatedUser = { ...currentPlayer, screenName: response };
       setCurrentPlayer(updatedUser);
-
       sendMessage(
         JSON.stringify({
           action: "registration",
           currentPlayer: updatedUser,
-          loggedIn: loggedIn,
         })
       );
       showMessageSent();
     } else if (responseRequired.responseAction === "newInstrument") {
-      const updatedUser = { ...user, instrument: response };
+      const updatedUser = { ...currentPlayer, instrument: response };
       setCurrentPlayer(updatedUser);
       sendMessage(
         JSON.stringify({
           action: "registration",
           currentPlayer: updatedUser,
-          loggedIn: loggedIn,
         })
       );
     } else if (responseRequired.responseAction === "joinRoom") {
@@ -186,7 +200,6 @@ const PerformPage = ({
           action: "registration",
           roomName: roomName,
           currentPlayer: currentPlayer,
-          loggedIn: loggedIn,
         })
       );
       showMessageSent();
@@ -246,7 +259,6 @@ const PerformPage = ({
       JSON.stringify({
         action: "registration",
         currentPlayer: currentPlayer,
-        loggedIn: loggedIn,
       })
     );
     showMessageSent();
@@ -269,103 +281,123 @@ const PerformPage = ({
     setShowMessageModal(true);
   };
 
-  const { screenName } = currentPlayer || "";
-
   return (
     <>
-      <Container className="fullVHeight d-flex justify-content-center align-items-center">
-        <Container className="midLayer glass">
-          {roomName && <h1>{roomName}</h1>}
-          {screenName && <h2>{screenName}</h2>}
-          {chatMessage && (
-            <MessageCard
-              message={chatMessage}
-              response={chatResponse}
-              responseRequired={responseRequired}
-              setResponse={setChatResponse}
-              handleSubmit={handleChatResponse}
-            />
-          )}
-          {gameStatus === "welcome" && (
-            <>
-              <Row>
-                <Col>
-                  <OptionCard
-                    message={"Join Performance"}
-                    onClick={handleChooseJoinPerformance}
-                  />
-                </Col>
-                <Col>
-                  <OptionCard
-                    message={
-                      loggedIn
-                        ? "Create Performance"
-                        : "Log in to create a performance"
-                    }
-                    onClick={handleChooseCreatePerformance}
-                  />
-                </Col>
-              </Row>
-              <Form>
-                <Form.Switch
-                  type="switch"
-                  id="performanceMode"
-                  label="Performance Mode"
-                  checked={performanceMode}
-                  onChange={handlePerformanceModeSwitch}
-                />
-              </Form>
-            </>
-          )}
-          <Row className="mt-3">
-            {gameStatus === "finalSummary" && currentPlayer?.roomCreator && (
-              <>
+      <CSSTransition
+        in={showContainer}
+        timeout={700} // Timeout should match the transition duration in CSS
+        classNames="fade"
+        unmountOnExit
+      >
+        <>
+          <Container className="fullVHeight d-flex justify-content-center align-items-center">
+            <Container className="midLayer glass">
+              {roomName && <h1>{roomName}</h1>}
+              {screenName && <h2>{screenName}</h2>}
+              {chatMessage && (
                 <>
-                  <Button
-                    variant="success"
-                    type="button"
-                    className="w-100"
-                    onClick={handlePlayAgain}
-                  >
-                    {"Play Again!"}
-                  </Button>
+                  <MessageCard
+                    message={chatMessage}
+                    response={chatResponse}
+                    responseRequired={responseRequired}
+                    setResponse={setChatResponse}
+                    handleSubmit={handleChatResponse}
+                  />
                 </>
-              </>
-            )}
-            {gameStatus === "Waiting To Start" && (
-              <LobbyView
-                feedbackQuestion={feedbackQuestion}
-                setFeedbackQuestion={setFeedbackQuestion}
-                sendMessage={sendMessage}
-                roomName={roomName}
-                currentPlayer={currentPlayer}
-                setChatMessage={setChatMessage}
-              />
-            )}
-            {(gameStatus === "improvise" || gameStatus === "endSong") && (
-              <>
-                <GameView
-                  currentPlayer={currentPlayer}
-                  roomName={roomName}
-                  sendMessage={sendMessage}
-                  finalPrompt={finalPrompt}
-                  gameStatus={gameStatus}
-                />
-              </>
-            )}
-          </Row>
-          {performerList.length > 0 && (
-            <>
-              <h2> Players </h2>
-              {performerList.map((performer, index) => (
-                <Col key={index} sm="auto">
-                  <p>{performer}</p>
-                </Col>
-              ))}
-            </>
-          )}
-        </Container>
-      </Container>
+              )}
+              {gameStatus === "welcome" && (
+                <>
+                  <CSSTransition
+                    in={showContainer}
+                    timeout={700} // Timeout should match the transition duration in CSS
+                    classNames="fade"
+                    unmountOnExit
+                  >
+                    <>
+                      <Row>
+                        <Col>
+                          <OptionCard
+                            message={"Join Performance"}
+                            onClick={handleChooseJoinPerformance}
+                          />
+                        </Col>
+                        <Col>
+                          <OptionCard
+                            message={
+                              loggedIn
+                                ? "Create Performance"
+                                : "Log in to create a performance"
+                            }
+                            onClick={handleChooseCreatePerformance}
+                          />
+                        </Col>
+                      </Row>
+                      <Form>
+                        <Form.Switch
+                          type="switch"
+                          id="performanceMode"
+                          label="Performance Mode"
+                          checked={performanceMode}
+                          onChange={handlePerformanceModeSwitch}
+                        />
+                      </Form>
+                    </>
+                  </CSSTransition>
+                </>
+              )}
+              <Row className="mt-3">
+                {gameStatus === "finalSummary" &&
+                  currentPlayer?.roomCreator && (
+                    <>
+                      <>
+                        <Button
+                          variant="success"
+                          type="button"
+                          className="w-100"
+                          onClick={handlePlayAgain}
+                        >
+                          {"Play Again!"}
+                        </Button>
+                      </>
+                    </>
+                  )}
+                {gameStatus === "Waiting To Start" && (
+                  <LobbyView
+                    feedbackQuestion={feedbackQuestion}
+                    setFeedbackQuestion={setFeedbackQuestion}
+                    sendMessage={sendMessage}
+                    roomName={roomName}
+                    currentPlayer={currentPlayer}
+                    setChatMessage={setChatMessage}
+                  />
+                )}
+                {(gameStatus === "improvise" || gameStatus === "endSong") && (
+                  <>
+                    <GameView
+                      showPrompt={showPrompt}
+                      currentPlayer={currentPlayer}
+                      roomName={roomName}
+                      sendMessage={sendMessage}
+                      finalPrompt={finalPrompt}
+                      gameStatus={gameStatus}
+                    />
+                  </>
+                )}
+              </Row>
+              {performerList.length > 0 && (
+                <>
+                  <h2> Players </h2>
+                  {performerList.map((performer, index) => (
+                    <Col key={index} sm="auto">
+                      <p>{performer}</p>
+                    </Col>
+                  ))}
+                </>
+              )}
+            </Container>
+          </Container>
+        </>
+      </CSSTransition>
       <MessageModal
         show={showMessageModal}
         setShow={setShowMessageModal}

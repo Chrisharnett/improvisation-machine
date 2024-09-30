@@ -3,14 +3,20 @@ import { useEffect, useState } from "react";
 import { useWebSocket } from "../util/WebSocketContext.js";
 
 const PlayerProfile = ({ currentPlayer, setCurrentPlayer }) => {
-  const [screenName, setScreenName] = useState(currentPlayer?.screenName || "");
-  const [instrument, setInstrument] = useState(currentPlayer?.instrument || "");
-
+  const [screenName, setScreenName] = useState("");
+  const [instrument, setInstrument] = useState("");
   const { sendMessage, incomingMessage, ready } = useWebSocket();
 
   useEffect(() => {
+    if (currentPlayer && currentPlayer.userId) {
+      setScreenName(currentPlayer.screenName || "");
+      setInstrument(currentPlayer.instrument || "");
+    }
+  }, [currentPlayer]);
+
+  useEffect(() => {
     const sendMessageWhenReady = async () => {
-      if (ready) {
+      if (ready && currentPlayer?.userId) {
         sendMessage(
           JSON.stringify({
             action: "getCurrentPlayer",
@@ -22,9 +28,7 @@ const PlayerProfile = ({ currentPlayer, setCurrentPlayer }) => {
     };
 
     sendMessageWhenReady();
-    setScreenName(currentPlayer?.screenName || "");
-    setInstrument(currentPlayer?.instrument || "");
-  }, [ready]);
+  }, [ready, currentPlayer]);
 
   useEffect(() => {
     if (incomingMessage) {
@@ -42,7 +46,7 @@ const PlayerProfile = ({ currentPlayer, setCurrentPlayer }) => {
     }
   }, [incomingMessage]);
 
-  const handleUpdateProfile = () => {
+  const handleUpdateProfile = (e) => {
     const updatedPlayer = {
       ...currentPlayer,
       screenName,

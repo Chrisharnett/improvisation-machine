@@ -1,6 +1,6 @@
 import { Card, Row } from "react-bootstrap";
 import { useEffect, useState } from "react";
-import ThumbsUpDownButtons from "./ThumbsUpDownButtons";
+import ReactionButtons from "./ReactionButtons";
 
 const PromptCard = ({
   promptTitle,
@@ -10,16 +10,27 @@ const PromptCard = ({
   roomName,
 }) => {
   const [title, setTitle] = useState("");
+  const [showContent, setShowContent] = useState(false);
+  const [disableButtons, setDisableButtons] = useState(false);
+  const [disableLikeButton, setDisableLikeButton] = useState(false);
 
   useEffect(() => {
-    if (promptTitle === "currentPrompt") {
-      setTitle("Play");
+    if (promptTitle === "groupPrompt") {
+      setTitle("Group");
+    } else if (promptTitle === "endPrompt") {
+      setTitle("Final Prompt");
     } else if (promptTitle !== "Final Prompt") {
-      setTitle("");
+      setTitle(currentPlayer.screenName);
     }
-  }, [promptTitle]);
+    if (prompt) {
+      setShowContent(true);
+    }
+    setDisableButtons(false);
+    setDisableLikeButton(false);
+  }, [prompt, promptTitle]);
 
   const handleThumbsUp = () => {
+    setDisableLikeButton(true);
     sendMessage(
       JSON.stringify({
         action: "reactToPrompt",
@@ -33,11 +44,26 @@ const PromptCard = ({
   };
 
   const handleThumbsDown = () => {
+    setDisableButtons(true);
     sendMessage(
       JSON.stringify({
         action: "reactToPrompt",
         currentPlayer: currentPlayer,
         reaction: "reject",
+        promptTitle: promptTitle,
+        prompt: prompt,
+        roomName: roomName,
+      })
+    );
+  };
+
+  const handleMoveOn = () => {
+    setDisableButtons(true);
+    sendMessage(
+      JSON.stringify({
+        action: "reactToPrompt",
+        currentPlayer: currentPlayer,
+        reaction: "moveOn",
         promptTitle: promptTitle,
         prompt: prompt,
         roomName: roomName,
@@ -67,12 +93,17 @@ const PromptCard = ({
             <Card.Title className="p-2 fs-4">{title}</Card.Title>
             <Card.Body className="fs-4">{prompt}</Card.Body>
             <Card.Footer>
-              <Row>
-                <ThumbsUpDownButtons
-                  onThumbsUpClick={handleThumbsUp}
-                  onThumbsDownClick={handleThumbsDown}
-                />
-              </Row>
+              {!(promptTitle === "Waiting") && (
+                <Row>
+                  <ReactionButtons
+                    onThumbsUpClick={handleThumbsUp}
+                    onThumbsDownClick={handleThumbsDown}
+                    onMoveOnClick={handleMoveOn}
+                    disableButtons={disableButtons}
+                    disableLikeButton={disableLikeButton}
+                  />
+                </Row>
+              )}
             </Card.Footer>
           </>
         )}

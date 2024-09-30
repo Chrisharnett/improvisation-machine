@@ -22,7 +22,19 @@ function App() {
   const [currentPlayer, setCurrentPlayer] = useState({});
 
   const user = useUser();
+
   const { sendMessage, incomingMessage } = useWebSocket();
+
+  useEffect(() => {
+    if (loggedIn && user) {
+      const player = {
+        ...currentPlayer,
+        registeredUser: true,
+        userId: user.sub,
+      };
+      setCurrentPlayer(player);
+    }
+  }, [loggedIn, user]);
 
   // Get a random background image.
   useEffect(() => {
@@ -37,19 +49,6 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (loggedIn) {
-      const player = { ...currentPlayer, registeredUser: true };
-      setCurrentPlayer(player);
-    }
-  }, [loggedIn]);
-
-  useEffect(() => {
-    if (user) {
-      currentPlayer.userId = user.sub;
-    }
-  }, [user]);
-
   return (
     <BrowserRouter>
       <Navigation
@@ -60,6 +59,7 @@ function App() {
         removeToken={removeToken}
         setError={setError}
         LogInUrl={LogInUrl}
+        currentPlayer={currentPlayer}
       />
       <Spacer />
       <Routes>

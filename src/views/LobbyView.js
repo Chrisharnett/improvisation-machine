@@ -1,7 +1,8 @@
-import { Row, Col, Button } from "react-bootstrap";
+import { Row, Col, Button, Form } from "react-bootstrap";
 import OptionCard from "../components/OptionCard";
 import { useEffect, useState } from "react";
 import { CSSTransition } from "react-transition-group";
+import ResponseBox from "../components/ResponseBox";
 
 const LobbyView = ({
   feedbackQuestion,
@@ -14,6 +15,7 @@ const LobbyView = ({
   const [disableButton, setDisableButton] = useState(true);
   const [error, setError] = useState("");
   const [showContent, setShowContent] = useState(false);
+  const [typedResponse, setTypedResponse] = useState("");
 
   useEffect(() => {
     if (currentPlayer.roomCreator) {
@@ -59,6 +61,7 @@ const LobbyView = ({
     );
     setDisableButton(true);
   };
+
   return (
     <>
       <CSSTransition
@@ -68,15 +71,21 @@ const LobbyView = ({
         unmountOnExit
       >
         <Row>
-          {feedbackQuestion?.question?.options?.map((option, index) => (
-            <Col key={index}>
-              <OptionCard
-                key={index}
-                message={option}
-                onClick={handleLobbyFeedback}
-              />
-            </Col>
-          ))}
+          {feedbackQuestion &&
+            (feedbackQuestion.question?.options?.length > 0 ? (
+              feedbackQuestion.question.options.map((option, index) => (
+                <Col key={index}>
+                  <OptionCard
+                    key={index}
+                    message={option}
+                    onClick={handleLobbyFeedback}
+                  />
+                </Col>
+              ))
+            ) : (
+              <ResponseBox handleSubmit={handleLobbyFeedback} />
+            ))}
+
           {currentPlayer?.roomCreator && (
             <Button
               variant="success"

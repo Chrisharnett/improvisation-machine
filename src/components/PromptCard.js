@@ -13,6 +13,7 @@ const PromptCard = ({
   const [showContent, setShowContent] = useState(false);
   const [disableButtons, setDisableButtons] = useState(false);
   const [disableLikeButton, setDisableLikeButton] = useState(false);
+  const [hideButtons, setHideButtons] = useState(false);
 
   useEffect(() => {
     if (promptTitle === "groupPrompt") {
@@ -21,6 +22,7 @@ const PromptCard = ({
       setTitle("Final Prompt");
     } else if (promptTitle !== "Final Prompt") {
       setTitle(currentPlayer.screenName);
+      setHideButtons(true);
     }
     if (prompt) {
       setShowContent(true);
@@ -93,7 +95,7 @@ const PromptCard = ({
             <Card.Title className="p-2 fs-4">{title}</Card.Title>
             <Card.Body className="fs-4">{prompt}</Card.Body>
             <Card.Footer>
-              {!(promptTitle === "Waiting") && (
+              {!((promptTitle === "Waiting") & !hideButtons) && (
                 <Row>
                   <ReactionButtons
                     onThumbsUpClick={handleThumbsUp}
@@ -101,6 +103,7 @@ const PromptCard = ({
                     onMoveOnClick={handleMoveOn}
                     disableButtons={disableButtons}
                     disableLikeButton={disableLikeButton}
+                    hideButtons={hideButtons}
                   />
                 </Row>
               )}

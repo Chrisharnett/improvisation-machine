@@ -1,6 +1,7 @@
 import { Card, Form, Button } from "react-bootstrap";
 import { CSSTransition } from "react-transition-group";
 import { useEffect, useState } from "react";
+import ResponseBox from "./ResponseBox";
 
 const MessageCard = ({
   message,
@@ -46,22 +47,23 @@ const MessageCard = ({
             <Card.Body className="fs-4">{message}</Card.Body>
             <Card.Footer>
               {responseRequired && (
-                <>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter your response"
-                    value={response}
-                    onChange={(e) => setResponse(e.target.value)}
-                    className="mt-2"
-                  />
-                  <Button
-                    variant="primary"
-                    onClick={() => handleClickSubmit(response)}
-                    className="mt-2"
-                  >
-                    Submit
-                  </Button>
-                </>
+                <ResponseBox handleSubmit={handleClickSubmit} />
+                // <>
+                //   <Form.Control
+                //     type="text"
+                //     placeholder="Enter your response"
+                //     value={response}
+                //     onChange={(e) => setResponse(e.target.value)}
+                //     className="mt-2"
+                //   />
+                //   <Button
+                //     variant="primary"
+                //     onClick={() => handleClickSubmit(response)}
+                //     className="mt-2"
+                //   >
+                //     Submit
+                //   </Button>
+                // </>
               )}
             </Card.Footer>
           </>

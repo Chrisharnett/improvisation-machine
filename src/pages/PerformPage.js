@@ -1,14 +1,14 @@
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useWebSocket } from "../util/WebSocketContext.js";
 import MessageCard from "../components/MessageCard.js";
 import OptionCard from "../components/OptionCard.js";
-// import useUser from "../auth/useUser.js";
 import { v4 as uuidv4 } from "uuid";
 import LobbyView from "../views/LobbyView.js";
 import GameView from "../views/GameView.js";
 import { MessageModal } from "../modals/MessageModal.js";
 import { CSSTransition } from "react-transition-group";
+import useUser from "../auth/useUser.js";
 
 const PerformPage = ({
   loggedIn,
@@ -30,10 +30,23 @@ const PerformPage = ({
   const [performerList, setPerformerList] = useState([]);
   const [showContainer, setShowContainer] = useState(false);
   const [showPrompt, setShowPrompt] = useState(true);
-
+  const [isUserReady, setIsUserReady] = useState(false);
   const { sendMessage, incomingMessage, ready } = useWebSocket();
-
   const { screenName } = currentPlayer || "";
+  const user = useUser();
+  const nodeRef = useRef(null);
+
+  useEffect(() => {
+    if (loggedIn && user) {
+      if (user) {
+        setCurrentPlayer((prevPlayer) => ({
+          ...prevPlayer,
+          registeredUser: true,
+          userId: user.sub,
+        }));
+      }
+    }
+  }, [user, loggedIn, setCurrentPlayer]);
 
   useEffect(() => {
     if (roomName || screenName || chatMessage) {
@@ -85,13 +98,8 @@ const PerformPage = ({
               setTimeout(() => {
                 setCurrentPlayer(message.gameState.performers[i]);
                 setShowPrompt(true);
-              }, 700); // Timeout should match the fade-out duration\
+              }, 700);
             }
-
-            console.log(
-              "New Game State: ",
-              message.gameState.performers[i].currentPrompts
-            );
           }
         }
       }
@@ -287,11 +295,12 @@ const PerformPage = ({
         in={showContainer}
         timeout={700} // Timeout should match the transition duration in CSS
         classNames="fade"
+        nodeRef={nodeRef}
         unmountOnExit
       >
         <>
           <Container className="fullVHeight d-flex justify-content-center align-items-center">
-            <Container className="midLayer glass">
+            <Container className="midLayer glass" ref={nodeRef}>
               {roomName && <h1>{roomName}</h1>}
               {screenName && <h2>{screenName}</h2>}
               {chatMessage && (

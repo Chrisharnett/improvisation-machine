@@ -1,37 +1,24 @@
 import { useState } from "react";
 
 export const useToken = () => {
+  // Retrieve the token from sessionStorage
   const getToken = () => {
-    const tokenString = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("token="));
-    if (tokenString) {
-      const token = decodeURIComponent(tokenString.split("=")[1]);
-      return token ? JSON.parse(token) : null;
-    }
-    return null;
+    const tokenString = sessionStorage.getItem("authToken");
+    return tokenString ? JSON.parse(tokenString) : null;
   };
 
+  // Set initial token state
   const [token, setToken] = useState(getToken());
 
+  // Save the token in sessionStorage and update state
   const saveToken = (newToken) => {
-    const saveToken = JSON.stringify({
-      id_token: newToken.id_token,
-      access_token: newToken.access_token,
-      // add refresh_token here if needed later
-    });
-    const date = new Date();
-    const expirationDays = 1;
-    date.setTime(date.getTime() + expirationDays * 24 * 60 * 60 * 1000);
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = `token=${encodeURIComponent(
-      saveToken
-    )}; path=/; ${expires}`;
-    setToken(saveToken);
+    sessionStorage.setItem("authToken", JSON.stringify(newToken));
+    setToken(newToken);
   };
 
+  // Remove the token from sessionStorage and update state
   const removeToken = () => {
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    sessionStorage.removeItem("authToken");
     setToken(null);
   };
 

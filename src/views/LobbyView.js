@@ -1,6 +1,6 @@
-import { Row, Col, Button, Form } from "react-bootstrap";
+import { Row, Col, Button } from "react-bootstrap";
 import OptionCard from "../components/OptionCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
 import ResponseBox from "../components/ResponseBox";
 
@@ -16,6 +16,8 @@ const LobbyView = ({
   const [error, setError] = useState("");
   const [showContent, setShowContent] = useState(false);
   const [typedResponse, setTypedResponse] = useState("");
+
+  const nodeRef = useRef(null);
 
   useEffect(() => {
     if (currentPlayer.roomCreator) {
@@ -69,8 +71,9 @@ const LobbyView = ({
         timeout={700} // Timeout should match the transition duration in CSS
         classNames="fade"
         unmountOnExit
+        nodeRef={nodeRef}
       >
-        <Row>
+        <Row ref={nodeRef}>
           {feedbackQuestion &&
             (feedbackQuestion.question?.options?.length > 0 ? (
               feedbackQuestion.question.options.map((option, index) => (

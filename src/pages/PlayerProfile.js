@@ -26,9 +26,10 @@ const PlayerProfile = ({ currentPlayer, setCurrentPlayer }) => {
         console.log("getCurrentPlayer");
       }
     };
-
-    sendMessageWhenReady();
-  }, [ready, currentPlayer]);
+    if (ready && currentPlayer?.userId) {
+      sendMessageWhenReady();
+    }
+  }, [ready, currentPlayer?.userId]);
 
   useEffect(() => {
     if (incomingMessage) {

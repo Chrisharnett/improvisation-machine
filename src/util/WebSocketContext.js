@@ -20,7 +20,7 @@ export const WebSocketProvider = ({ children, url }) => {
 
   const connectWebSocket = () => {
     if (isConnecting.current || socket) {
-      console.log("WebSocket is already connecting or connected.");
+      // console.log("WebSocket is already connecting or connected.");
       return;
     }
 
@@ -28,7 +28,7 @@ export const WebSocketProvider = ({ children, url }) => {
     const ws = new WebSocket(url);
 
     ws.onopen = () => {
-      console.log("Connected to WebSocket server");
+      // console.log("Connected to WebSocket server");
       clearInterval(reconnectInterval.current);
       reconnectDelay.current = 1000;
       isManuallyClosed.current = false;
@@ -45,11 +45,11 @@ export const WebSocketProvider = ({ children, url }) => {
           ws.send(JSON.stringify({ action: "pong" }));
           // console.log("Pong sent to server.");
         } else {
-          console.log("Received message:", message);
+          // console.log("Received message:", message);
           setIncomingMessage(message);
         }
       } catch (error) {
-        console.error("Failed to parse message:", message);
+        // console.error("Failed to parse message:", message);
       }
     };
 
@@ -57,9 +57,9 @@ export const WebSocketProvider = ({ children, url }) => {
       setReady(false);
       isConnecting.current = false; // Reset flag on close
       if (!isManuallyClosed.current) {
-        console.log(
-          "Disconnected from WebSocket server, attempting to reconnect..."
-        );
+        // console.log(
+        //   "Disconnected from WebSocket server, attempting to reconnect..."
+        // );
         reconnectWebSocket(); // Reconnect when the connection closes
       }
     };

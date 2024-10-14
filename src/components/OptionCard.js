@@ -1,9 +1,10 @@
 import { Card, Row } from "react-bootstrap";
 import { CSSTransition } from "react-transition-group";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const OptionCard = ({ message, onClick }) => {
   const [showContent, setShowContent] = useState(false);
+  const nodeRef = useRef(null);
 
   useEffect(() => {
     if (message) {
@@ -17,6 +18,7 @@ const OptionCard = ({ message, onClick }) => {
         in={showContent}
         timeout={700} // Timeout should match the transition duration in CSS
         classNames="fade"
+        nodeRef={nodeRef}
         unmountOnExit
       >
         <Card
@@ -30,6 +32,7 @@ const OptionCard = ({ message, onClick }) => {
             borderRadius: "15px",
             color: "rgb(255, 255, 255, 1)",
           }}
+          ref={nodeRef}
         >
           <>
             <Card.Title className="p-2 fs-4"></Card.Title>

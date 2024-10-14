@@ -2,6 +2,7 @@
 
 /promptData
 /lambdaScripts
+template.yaml
 
 # dependencies
 frontend/node_modules

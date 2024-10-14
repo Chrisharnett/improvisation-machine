@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Navigation from "./components/NavBar.js";
 import HomePage from "./pages/HomePage.js";
@@ -12,62 +12,32 @@ import About from "./pages/About.js";
 import PlayerProfile from "./pages/PlayerProfile.js";
 import { Spacer } from "./util/Spacer.js";
 import { useWebSocket } from "./util/WebSocketContext.js";
-import axios from "axios";
 import useUser from "./auth/useUser.js";
 
 function App() {
+  // const [loggedIn, setLoggedIn] = useState(false);
   const [token, saveToken, removeToken] = useToken();
   const [error, setError] = useState(null);
-  const [LogInUrl] = useState(getCognitoURL());
+  const [LogInUrl, setLogInUrl] = useState(getCognitoURL());
   const [currentPlayer, setCurrentPlayer] = useState({});
+
   const loggedIn = useMemo(() => !!token, [token]);
-  const [codeProcessed, setCodeProcessed] = useState(false);
-  const { sendMessage, incomingMessage } = useWebSocket();
+
   const user = useUser();
 
-  // Handle token exchange from URL parameter
+  const { sendMessage, incomingMessage } = useWebSocket();
+
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-
-    if (code && !codeProcessed) {
-      codeForToken(code);
-      setCodeProcessed(true);
-      window.history.replaceState({}, document.title, window.location.pathname);
+    if (user) {
+      setCurrentPlayer((prevPlayer) => ({
+        ...prevPlayer,
+        registeredUser: true,
+        userId: user.sub,
+      }));
     }
-  }, []);
+  }, [user]);
 
-  const codeForToken = async (code) => {
-    try {
-      const callback =
-        process.env.REACT_APP_ENV === "prod"
-          ? process.env.REACT_APP_COGNITO_CALLBACK_PROD
-          : process.env.REACT_APP_COGNITO_CALLBACK_LOCAL;
-      const response = await axios.post(
-        `${process.env.REACT_APP_AUTH_API}`,
-        JSON.stringify({
-          code: code,
-          redirect_uri: callback,
-        })
-      );
-      const newToken = response.data;
-
-      saveToken(newToken);
-    } catch (error) {
-      console.error("Error fetching token:", error);
-      setError(error);
-    }
-  };
-
-  const logOutHandler = () => {
-    removeToken();
-    window.location.href = "/";
-  };
-
-  const logInHandler = () => {
-    window.location.href = LogInUrl;
-  };
-
+  // Get a random background image.
   useEffect(() => {
     const randomBackground =
       Backgrounds[Math.floor(Math.random() * Backgrounds.length)];
@@ -84,8 +54,12 @@ function App() {
     <BrowserRouter>
       <Navigation
         loggedIn={loggedIn}
-        logInHandler={logInHandler}
-        logOutHandler={logOutHandler}
+        // setLoggedIn={setLoggedIn}
+        token={token}
+        saveToken={saveToken}
+        removeToken={removeToken}
+        setError={setError}
+        LogInUrl={LogInUrl}
         currentPlayer={currentPlayer}
       />
       <Spacer />
@@ -93,11 +67,10 @@ function App() {
         <Route
           path="/"
           element={
-            loggedIn ? (
-              <Navigate to="/performPage" replace />
-            ) : (
-              <HomePage loggedIn={loggedIn} />
-            )
+            <HomePage
+              loggedIn={loggedIn}
+              // setLoggedIn={setLoggedIn}
+            />
           }
         />
         <Route path="/about" element={<About />} />
@@ -112,17 +85,17 @@ function App() {
             />
           }
         />
-        <Route
-          path="/playerProfile"
-          element={
-            <PrivateRoute redirectPath="/">
+        <Route element={<PrivateRoute />}>
+          <Route
+            path="/playerProfile"
+            element={
               <PlayerProfile
                 currentPlayer={currentPlayer}
                 setCurrentPlayer={setCurrentPlayer}
               />
-            </PrivateRoute>
-          }
-        />
+            }
+          />
+        </Route>
       </Routes>
       <Spacer />
     </BrowserRouter>

@@ -4,26 +4,16 @@ import { useToken } from "./useToken";
 const useUser = () => {
   const [token, , removeToken] = useToken();
 
-  // Function to extract payload from JWT token
   const getPayloadFromToken = (token) => {
-    if (!token || typeof token !== "object") {
+    if (!token || typeof token !== "string") {
       console.error("Invalid token:", token);
       removeToken();
       return null;
     }
-
-    const { id_token } = token;
-
-    if (!id_token || typeof id_token !== "string") {
-      console.error("Invalid or missing id_token:", id_token);
-      removeToken();
-      return null;
-    }
-
-    const parts = id_token.split(".");
+    const parts = token.split(".");
 
     if (parts.length !== 3) {
-      console.error("Token does not have the expected format:", id_token);
+      console.error("Token does not have the expected format:", token);
       removeToken();
       return null;
     }
@@ -33,23 +23,25 @@ const useUser = () => {
       const decodedPayload = atob(encodedPayload);
       return JSON.parse(decodedPayload);
     } catch (error) {
-      console.error("Error decoding token:", id_token, error);
+      console.error("Error decoding token:", token, error);
       removeToken();
       return null;
     }
   };
 
-  // Initialize the user state from the token if it exists
   const [user, setUser] = useState(() => {
-    return token ? getPayloadFromToken(token) : null;
+    if (!token) {
+      return null;
+    } else {
+      return getPayloadFromToken(token.id_token);
+    }
   });
 
-  // Update the user state when the token changes
   useEffect(() => {
     if (!token) {
       setUser(null);
     } else {
-      setUser(getPayloadFromToken(token));
+      setUser(getPayloadFromToken(token.id_token));
     }
   }, [token]);
 
@@ -57,3 +49,5 @@ const useUser = () => {
 };
 
 export default useUser;
+
+// Add functions for access_token later if needed.

@@ -16,6 +16,7 @@ const GameView = ({
   const [disableButton, setDisableButton] = useState(false);
   const [promptKeys, setPromptKeys] = useState([]); // Track prompt keys for triggering individual fades
   const [hideButtons, setHideButtons] = useState(false);
+  const token = sessionStorage.getItem("token");
 
   const refs = useRef({});
 
@@ -64,6 +65,7 @@ const GameView = ({
             action: "performanceComplete",
             roomName: roomName,
             currentPlayer: currentPlayer,
+            token: token,
           })
         );
       }
@@ -75,6 +77,7 @@ const GameView = ({
           action: "endSong",
           roomName: roomName,
           currentPlayer: currentPlayer,
+          token: token,
         })
       );
     }

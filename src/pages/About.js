@@ -39,6 +39,14 @@ const About = () => {
         <Container className="midLayer glass">
           <h1> About Me </h1>
           <p> {aboutMe}</p>
+          <hr></hr>
+          <p>
+            {" "}
+            This About Me section is an AI generated description. As such, it
+            really is quite flattering, but does sometimes include non-truths.
+            Feel welcome to contact me at harnettmusic@gmail.com with any
+            questions or to fact-check.
+          </p>
         </Container>
         <MessageCard />
       </Container>

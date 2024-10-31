@@ -104,12 +104,14 @@ function App() {
         <Route
           path="/performPage"
           element={
-            <PerformPage
-              loggedIn={loggedIn}
-              LogInUrl={LogInUrl}
-              currentPlayer={currentPlayer}
-              setCurrentPlayer={setCurrentPlayer}
-            />
+            <PrivateRoute redirectPath="/">
+              <PerformPage
+                loggedIn={loggedIn}
+                LogInUrl={LogInUrl}
+                currentPlayer={currentPlayer}
+                setCurrentPlayer={setCurrentPlayer}
+              />
+            </PrivateRoute>
           }
         />
         <Route

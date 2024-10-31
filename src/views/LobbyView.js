@@ -16,6 +16,7 @@ const LobbyView = ({
   const [error, setError] = useState("");
   const [showContent, setShowContent] = useState(false);
   const [typedResponse, setTypedResponse] = useState("");
+  const token = sessionStorage.getItem("token");
 
   const nodeRef = useRef(null);
 
@@ -37,6 +38,7 @@ const LobbyView = ({
           feedbackQuestion: feedbackQuestion,
           currentPlayer: currentPlayer,
           response: option,
+          token: token,
         })
       );
       setChatMessage(option);
@@ -52,6 +54,7 @@ const LobbyView = ({
         action: "announceStartPerformance",
         roomName: roomName,
         currentPlayer: currentPlayer,
+        token: token,
       })
     );
     sendMessage(
@@ -59,6 +62,7 @@ const LobbyView = ({
         action: "startPerformance",
         roomName: roomName,
         currentPlayer: currentPlayer,
+        token: token,
       })
     );
     setDisableButton(true);
